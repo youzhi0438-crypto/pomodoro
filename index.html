@@ -1,597 +1,384 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>高级番茄钟 Pro</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: #0a0a0a;
-    color: #f0f0f0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    min-height: 100vh;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>极简纯色番茄钟</title>
+  <style>
+    /* ==================== 1. 彻底消除网页白边 & 全屏沉浸式样式 ==================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  /* NAV */
-  .nav {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 32px; border-bottom: 1px solid #1a1a1a;
-    position: sticky; top: 0; background: #0a0a0a; z-index: 100;
-  }
-  .nav-logo { font-size: 15px; font-weight: 500; color: #888; letter-spacing: .04em; }
-  .nav-tabs { display: flex; gap: 4px; }
-  .nav-tab {
-    padding: 7px 18px; border-radius: 8px; border: none;
-    background: transparent; color: #555; font-size: 13px; cursor: pointer; transition: all .2s;
-  }
-  .nav-tab.active { background: #1e1e1e; color: #f0f0f0; }
-  .nav-tab:hover:not(.active) { color: #aaa; }
+    /* 定义全局主题色变量，默认是番茄红 */
+    :root {
+      --theme-color: #ff6b6b;
+    }
 
-  /* PAGES */
-  .page { display: none; width: 100%; max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem; }
-  .page.active { display: flex; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
 
-  /* ===== CLOCK PAGE ===== */
-  #page-clock {
-    flex-direction: row; align-items: center; justify-content: center;
-    min-height: calc(100vh - 70px); gap: 4rem;
-  }
-  .clock-side { display: flex; flex-direction: column; align-items: center; gap: 1.8rem; flex-shrink: 0; }
-  .panel { display: flex; flex-direction: column; align-items: center; gap: 1.8rem; }
-  .current-task-title { font-size: 16px; color: #aaa; font-weight: 500; background: #111; padding: 6px 16px; border-radius: 20px; border: 1px solid #222;}
-  
-  .flip-clock { display: flex; align-items: center; gap: 14px; }
-  .flip-unit { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-  .flip-unit-label { font-size: 11px; color: #444; letter-spacing: .08em; }
-  .flip-pair { display: flex; gap: 5px; }
-  .flip-digit { width: 72px; height: 100px; position: relative; }
-  .f-top { position: absolute; top: 0; left: 0; width: 100%; height: 50%; overflow: hidden; border-radius: 8px 8px 0 0; background: #1e1e1e; border: 1px solid #2a2a2a; border-bottom: 1px solid #111; display: flex; align-items: flex-end; justify-content: center; }
-  .f-bot { position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; overflow: hidden; border-radius: 0 0 8px 8px; background: #181818; border: 1px solid #2a2a2a; border-top: none; display: flex; align-items: flex-start; justify-content: center; }
-  .f-top span { font-size: 68px; font-weight: 500; line-height: 1; transform: translateY(50%); color: #e8f4ff; font-variant-numeric: tabular-nums; }
-  .f-bot span { font-size: 68px; font-weight: 500; line-height: 1; transform: translateY(-50%); color: #c8e4f8; font-variant-numeric: tabular-nums; }
-  .center-line { position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: #0a0a0a; z-index: 5; transform: translateY(-50%); }
-  .sep { display: flex; flex-direction: column; gap: 18px; padding-bottom: 26px; }
-  .sep-dot { width: 7px; height: 7px; border-radius: 50%; background: #333; }
-  
-  .controls { display: flex; gap: 14px; align-items: center; }
-  .ctrl-btn { width: 52px; height: 52px; border-radius: 50%; border: 1px solid #333; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #aaa; transition: all .15s; font-size: 13px; }
-  .ctrl-btn:hover { background: #1e1e1e; color: #f0f0f0; }
-  .ctrl-btn.primary { width: 68px; height: 68px; border-color: #555; color: #f0f0f0; }
-  .ctrl-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-  .ctrl-btn.primary svg { width: 28px; height: 28px; }
+    /* 纯色背景，带丝滑过渡效果 */
+    body {
+      background-color: var(--theme-color);
+      color: #ffffff;
+      transition: background-color 0.5s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
 
-  .divider { width: 1px; height: 280px; background: linear-gradient(to bottom, transparent, #2a2a2a 30%, #2a2a2a 70%, transparent); flex-shrink: 0; }
-  .quote-side { display: flex; flex-direction: column; justify-content: center; gap: 2rem; max-width: 320px; width: 100%; }
-  .quote-card { display: flex; flex-direction: column; gap: 1.4rem; }
-  .quote-zh { font-size: 16px; font-weight: 500; color: #e8e8e8; line-height: 1.65; }
-  .quote-en { font-size: 12px; color: #555; font-style: italic; }
+    /* 2. 顶部计划切换按钮 */
+    .plan-selector {
+      margin-top: 10px;
+      margin-bottom: 35px;
+      display: flex;
+      gap: 10px;
+    }
 
-  /* ===== PLAN & ADMIN PAGE ===== */
-  #page-plans, #page-stats, #page-admin { flex-direction: column; gap: 2rem; }
-  .section-title { font-size: 18px; font-weight: 500; color: #e0e0e0; border-left: 3px solid #3498db; padding-left: 10px; margin-bottom: 1rem; }
-  
-  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
-  .plan-card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; transition: all .2s; cursor: pointer;}
-  .plan-card:hover { border-color: #444; background: #151515; }
-  .plan-name { font-size: 16px; font-weight: 500; color: #fff; }
-  .plan-meta { font-size: 12px; color: #666; }
-  .plan-badge { position: absolute; top: 15px; right: 15px; font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #222; color: #aaa; }
+    .plan-selector button {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
 
-  .add-form { background: #111; border: 1px solid #222; border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
-  .form-group { display: flex; flex-direction: column; gap: 6px; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .form-label { font-size: 12px; color: #888; }
-  .form-input, select { background: #0a0a0a; border: 1px solid #272727; border-radius: 8px; color: #e0e0e0; font-size: 14px; padding: 10px; outline: none; }
-  .btn { padding: 10px 20px; border-radius: 8px; border: 1px solid #333; font-size: 13px; cursor: pointer; transition: all .2s; background: transparent; color: #aaa; text-align: center;}
-  .btn:hover { background: #1a1a1a; color: #f0f0f0; }
-  .btn.primary { background: #3498db; border-color: #3498db; color: #fff; }
-  .btn.primary:hover { background: #2980b9; }
-  .btn.danger { color: #e74c3c; }
+    .plan-selector button:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
 
-  /* ===== STATS DASHBOARD ===== */
-  .stats-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-  .stat-box { background: #111; border: 1px solid #222; border-radius: 12px; padding: 20px; text-align: center; }
-  .stat-val { font-size: 24px; font-weight: 600; color: #3498db; margin-top: 5px; font-variant-numeric: tabular-nums;}
-  .stat-lbl { font-size: 12px; color: #666; }
-  
-  .chart-section { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; min-height: 300px; }
-  .chart-wrapper { background: #111; border: 1px solid #222; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;}
-  
-  /* ===== WEEK OVERVIEW TIMELINE (纵览视图) ===== */
-  .week-container { background: #111; border: 1px solid #222; border-radius: 12px; padding: 16px; overflow-x: auto; }
-  .week-grid { display: grid; grid-template-columns: 60px repeat(7, 1fr); position: relative; min-width: 700px; }
-  .week-header-cell { text-align: center; padding: 8px 0; font-size: 13px; color: #888; border-bottom: 1px solid #222; }
-  .time-col { display: flex; flex-direction: column; }
-  .time-slot { height: 40px; font-size: 11px; color: #444; text-align: right; padding-right: 10px; line-height: 12px; border-right: 1px solid #222; }
-  .day-col { position: relative; height: 960px; border-right: 1px solid #1a1a1a; background-image: linear-gradient(#1a1a1a 1px, transparent 1px); background-size: 100% 40px; }
-  .day-col:last-child { border-right: none; }
-  .time-block { position: absolute; left: 4px; right: 4px; border-radius: 4px; background: rgba(52, 152, 219, 0.24); border-left: 3px solid #3498db; padding: 4px; font-size: 10px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* 主布局容器 */
+    .main-container {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 35px;
+      align-items: center;
+    }
 
-  /* ADMIN SINGLE LIST */
-  .quotes-list { display: flex; flex-direction: column; gap: 8px; }
-  .quote-item { background: #111; border: 1px solid #1a1a1a; border-radius: 8px; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
+    /* 倒计时样式 */
+    .timer-section {
+      text-align: center;
+    }
 
-  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(16px); background: #1e1e1e; border: 1px solid #333; border-radius: 10px; padding: 10px 20px; font-size: 13px; color: #ccc; opacity: 0; transition: all .3s; pointer-events: none; z-index: 999; }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #timer-display {
+      font-size: 80px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      margin-bottom: 15px;
+    }
 
-  @media (max-width: 800px) {
-    #page-clock { flex-direction: column; gap: 2rem; padding-top: 1rem;}
-    .divider { width: 200px; height: 1px; background: linear-gradient(to right, transparent, #2a2a2a, transparent); }
-    .stats-summary { grid-template-columns: repeat(2, 1fr); }
-    .chart-section { grid-template-columns: 1fr; }
-  }
-</style>
+    .timer-controls button {
+      background: #ffffff;
+      color: var(--theme-color);
+      border: none;
+      padding: 10px 25px;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 25px;
+      margin: 0 5px;
+      cursor: pointer;
+      transition: transform 0.2s, color 0.5s;
+    }
+
+    .timer-controls button:active {
+      transform: scale(0.95);
+    }
+
+    /* 4. 英语每日一句样式 (高仿小喇叭图标) */
+    .english-section {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 22px;
+      border-radius: 16px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+    }
+
+    #english-text {
+      font-size: 18px;
+      font-weight: 500;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+
+    #chinese-text {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-bottom: 15px;
+    }
+
+    .audio-btn {
+      background: rgba(255, 255, 255, 0.25);
+      border: none;
+      color: white;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s;
+    }
+
+    .audio-btn:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    /* 1. 备忘录样式 */
+    .memo-section {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 16px;
+    }
+
+    .memo-section h3 {
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+
+    .memo-input-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .memo-input-box input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 8px 12px;
+      border-radius: 8px;
+      color: white;
+      outline: none;
+    }
+
+    .memo-input-box input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .memo-input-box button {
+      background: white;
+      color: #333;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #memo-list {
+      list-style: none;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    #memo-list li {
+      background: rgba(0, 0, 0, 0.1);
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    #memo-list li button {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.6);
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    #memo-list li button:hover {
+      color: #ff6b6b;
+    }
+  </style>
 </head>
 <body>
 
-<nav class="nav">
-  <span class="nav-logo">🍅 智能专注看板</span>
-  <div class="nav-tabs">
-    <button class="nav-tab active" onclick="showPage('clock',this)">工作台</button>
-    <button class="nav-tab" onclick="showPage('plans',this)">专注计划</button>
-    <button class="nav-tab" onclick="showPage('stats',this)">数据统计</button>
-    <button class="nav-tab" onclick="showPage('admin',this)">名言管理</button>
-  </div>
-</nav>
-
-<div id="page-clock" class="page active">
-  <div class="clock-side">
-    <div class="current-task-title" id="currentTaskDisplay">当前任务: 默认倒计时</div>
-    <div class="flip-clock">
-      <div class="flip-unit">
-        <div class="flip-pair">
-          <div class="flip-digit" id="pm0"><div class="f-top"><span>2</span></div><div class="center-line"></div><div class="f-bot"><span>2</span></div></div>
-          <div class="flip-digit" id="pm1"><div class="f-top"><span>5</span></div><div class="center-line"></div><div class="f-bot"><span>5</span></div></div>
-        </div>
-        <div class="flip-unit-label">分钟/小时</div>
-      </div>
-      <div class="sep"><div class="sep-dot"></div><div class="sep-dot"></div></div>
-      <div class="flip-unit">
-        <div class="flip-pair">
-          <div class="flip-digit" id="ps0"><div class="f-top"><span>0</span></div><div class="center-line"></div><div class="f-bot"><span>0</span></div></div>
-          <div class="flip-digit" id="ps1"><div class="f-top"><span>0</span></div><div class="center-line"></div><div class="f-bot"><span>0</span></div></div>
-        </div>
-        <div class="flip-unit-label">秒钟</div>
-      </div>
-    </div>
-    <div class="controls">
-      <button class="ctrl-btn" onclick="resetTimer()"><svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg></button>
-      <button class="ctrl-btn primary" onclick="toggleTimer()"><svg id="playIcon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
-      <button class="ctrl-btn" onclick="skipTimer()"><svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg></button>
-    </div>
+  <div class="plan-selector">
+    <button onclick="switchPlan('work', '#ff6b6b')">💻 工作</button>
+    <button onclick="switchPlan('read', '#4dabf7')">📚 读书</button>
+    <button onclick="switchPlan('meditate', '#51cf66')">🧘 冥想</button>
   </div>
 
-  <div class="divider"></div>
-
-  <div class="quote-side">
-    <div class="quote-card">
-      <div class="quote-zh" id="quoteZh">专注当下，每一秒都是礼物。</div>
-      <div class="quote-en" id="quoteEn">Focus on the present — every second is a gift.</div>
-    </div>
-  </div>
-</div>
-
-<div id="page-plans" class="page">
-  <div>
-    <h3 class="section-title">新建定制计划</h3>
-    <div class="add-form">
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">任务名称</label>
-          <input type="text" id="planName" placeholder="例如：学英语、写前端代码">
-        </div>
-        <div class="form-group">
-          <label class="form-label">计时类型</label>
-          <select id="planType" onchange="toggleFormDuration()">
-            <option value="countdown">倒计时 (固定时长)</option>
-            <option value="countup">正计时 (自由把控)</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group" id="formDurationGroup">
-        <label class="form-label">设定时长 (分钟)</label>
-        <input type="number" id="planDuration" value="25" min="1">
-      </div>
-      <button class="btn primary" onclick="createNewPlan()">添加此计划</button>
-    </div>
-  </div>
-  <div>
-    <h3 class="section-title">自选计划列表 (点击立即开始)</h3>
-    <div class="card-grid" id="plansGrid"></div>
-  </div>
-</div>
-
-<div id="page-stats" class="page">
-  <h3 class="section-title">数据看板</h3>
-  <div class="stats-summary">
-    <div class="stat-box"><div class="stat-lbl">累计专注次数</div><div class="stat-val" id="statCount">0 次</div></div>
-    <div class="stat-box"><div class="stat-lbl">累计专注时长</div><div class="stat-val" id="statTotalTime">0 分</div></div>
-    <div class="stat-box"><div class="stat-lbl">单次最高时长</div><div class="stat-val" id="statMax">0 分</div></div>
-    <div class="stat-box"><div class="stat-lbl">计划覆盖种类</div><div class="stat-val" id="statTypes">0 种</div></div>
-  </div>
-
-  <div class="chart-section">
-    <div class="chart-wrapper">
-      <h4 style="font-size:14px; margin-bottom:15px; color:#aaa;">各类专注分配比例</h4>
-      <div style="width: 100%; max-width: 200px;"><canvas id="pieChart"></canvas></div>
-    </div>
+  <div class="main-container">
     
-    <div class="chart-wrapper" style="align-items: stretch;">
-      <h4 style="font-size:14px; margin-bottom:15px; color:#aaa;">本周专注时段纵览 (周一~周日 24H)</h4>
-      <div class="week-container">
-        <div class="week-grid" id="weekGrid">
-          </div>
+    <div class="timer-section">
+      <div id="timer-display">25:00</div>
+      <div class="timer-controls">
+        <button id="start-btn" onclick="toggleTimer()">开始</button>
+        <button id="reset-btn" onclick="resetTimer()">重置</button>
       </div>
     </div>
-  </div>
-</div>
 
-<div id="page-admin" class="page">
-  <h3 class="section-title">壹句中心</h3>
-  <div class="add-form">
-    <div class="form-row">
-      <input type="text" id="adminZh" placeholder="中文短语">
-      <input type="text" id="adminEn" placeholder="英文短语">
+    <div class="english-section">
+      <p id="english-text">When the soul lies down in that grass the world is too full to talk about.</p>
+      <p id="chinese-text">当灵魂在那片草地上躺下，世界便丰盈得无法言说。</p>
+      <button class="audio-btn" onclick="speakEnglish()" title="播放发音">
+        <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+      </button>
     </div>
-    <button class="btn primary" onclick="addCustomQuote()">添加</button>
+
+    <div class="memo-section">
+      <h3>📋 今日备忘</h3>
+      <div class="memo-input-box">
+        <input type="text" id="memo-input" placeholder="添加一个新任务...">
+        <button onclick="addMemo()">添加</button>
+      </div>
+      <ul id="memo-list"></ul>
+    </div>
+
   </div>
-  <div class="quotes-list" id="adminQuotesList"></div>
-</div>
 
-<div class="toast" id="toast"></div>
+  <script>
+    // ==================== 全局变量 & 初始化 ====================
+    let timer;
+    let timeLeft = 25 * 60; // 默认25分钟
+    let isRunning = false;
+    let currentPlan = 'work';
 
-<script>
-/* ===== 核心系统变量 ===== */
-let plans = JSON.parse(localStorage.getItem('custom_plans')) || [
-  { id: 'd1', name: '标准番茄钟', type: 'countdown', duration: 25 },
-  { id: 'd2', name: '自由正计时', type: 'countup', duration: 0 },
-  { id: 'd3', name: '深度长专注', type: 'countdown', duration: 50 }
-];
+    // 初始化番茄钟结束提示音 (请确保在项目目录下有一个 alarm.mp3 文件)
+    const alarmSound = new Audio('alarm.mp3'); 
 
-let historyLogs = JSON.parse(localStorage.getItem('focus_history')) || [];
+    // 页面加载完成后自动读取本地备忘录
+    document.addEventListener('DOMContentLoaded', () => {
+      renderMemos();
+    });
 
-let currentPlan = plans[0];
-let timerState = { isRunning: false, timeElapsed: 0, timeRemaining: plans[0].duration * 60, intervalId: null, startTimeStamp: null };
+    // ==================== 2. 专注计划与颜色切换逻辑 ====================
+    function switchPlan(planName, colorHex) {
+      currentPlan = planName;
+      // 修改 CSS 变量，一键切换全局颜色
+      document.documentElement.style.setProperty('--theme-color', colorHex);
+      
+      // 根据不同的专注计划，自动切换默认倒计时长
+      if (planName === 'work') timeLeft = 25 * 60;
+      if (planName === 'read') timeLeft = 30 * 60;
+      if (planName === 'meditate') timeLeft = 10 * 60;
+      
+      resetTimer();
+    }
 
-const DEFAULT_QUOTES = [
-  { zh: "专注于当下，每一秒都是在雕刻未来的自己。", en: "Focus on the present, sculpting your future self every second." },
-  { zh: "先开始，再完美。路是在走的过程中变清晰的。", en: "Start first, perfect later. The path becomes clear as you walk." },
-  { zh: "自律不是限制自由，而是用更酷的方式驾驭生活。", en: "Self-discipline is not restriction, but steering life in a cooler way." }
-];
-let quotes = JSON.parse(localStorage.getItem('custom_quotes')) || DEFAULT_QUOTES;
-let chartInstance = null;
+    // ==================== 番茄钟倒计时核心逻辑 ====================
+    function updateDisplay() {
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      document.getElementById('timer-display').innerText = 
+        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
 
-/* ===== 核心路由导航 ===== */
-function showPage(pageId, btn) {
-  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(`page-${pageId}`).classList.add('active');
-  
-  if(pageId === 'plans') renderPlans();
-  if(pageId === 'stats') { renderStats(); renderWeekTimeline(); }
-  if(pageId === 'admin') renderAdminQuotes();
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
-}
-
-/* ===== 翻页时钟底层组件 ===== */
-function animFlip(el, newVal) {
-  if (!el) return;
-  const top = el.querySelector('.f-top span'), bot = el.querySelector('.f-bot span');
-  const old = top.textContent, nv = String(newVal);
-  if (old === nv) return;
-  
-  const fT = document.createElement('div');
-  fT.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:50%;overflow:hidden;transform-origin:bottom center;border-radius:8px 8px 0 0;background:#1e1e1e;border:1px solid #2a2a2a;z-index:10';
-  fT.innerHTML = `<span style="font-size:68px;font-weight:500;line-height:1;transform:translateY(50%);color:#e8f4ff;display:flex;justify-content:center">${old}</span>`;
-  
-  const fB = document.createElement('div');
-  fB.style.cssText = 'position:absolute;top:50%;left:0;width:100%;height:50%;overflow:hidden;transform-origin:top center;border-radius:0 0 8px 8px;background:#181818;border:1px solid #2a2a2a;border-top:none;z-index:10;transform:rotateX(-90deg)';
-  fB.innerHTML = `<span style="font-size:68px;font-weight:500;line-height:1;transform:translateY(-50%);color:#c8e4f8;display:flex;justify-content:center">${nv}</span>`;
-  
-  top.textContent = nv; bot.textContent = nv;
-  el.appendChild(fT); el.appendChild(fB);
-  
-  let st = null;
-  requestAnimationFrame(function step(ts) {
-    if (!st) st = ts;
-    const p = Math.min((ts-st)/300, 1), e = 1-Math.pow(1-p,3);
-    fT.style.transform = `rotateX(${e*-90}deg)`;
-    fB.style.transform = `rotateX(${(1-e)*-90}deg)`;
-    if (p < 1) requestAnimationFrame(step); else { fT.remove(); fB.remove(); }
-  });
-}
-
-function updateDisplay(force = false) {
-  let minutesOrHours = 0, seconds = 0;
-  if (currentPlan.type === 'countdown') {
-    minutesOrHours = Math.floor(timerState.timeRemaining / 60);
-    seconds = timerState.timeRemaining % 60;
-  } else {
-    minutesOrHours = Math.floor(timerState.timeElapsed / 60);
-    seconds = timerState.timeElapsed % 60;
-  }
-  
-  const mStr = String(minutesOrHours).padStart(2, '0');
-  const sStr = String(seconds).padStart(2, '0');
-  
-  if(force) {
-    document.getElementById('pm0').querySelector('.f-top span').textContent = mStr[0];
-    document.getElementById('pm0').querySelector('.f-bot span').textContent = mStr[0];
-    document.getElementById('pm1').querySelector('.f-top span').textContent = mStr[1];
-    document.getElementById('pm1').querySelector('.f-bot span').textContent = mStr[1];
-    document.getElementById('ps0').querySelector('.f-top span').textContent = sStr[0];
-    document.getElementById('ps0').querySelector('.f-bot span').textContent = sStr[0];
-    document.getElementById('ps1').querySelector('.f-top span').textContent = sStr[1];
-    document.getElementById('ps1').querySelector('.f-bot span').textContent = sStr[1];
-  } else {
-    animFlip(document.getElementById('pm0'), mStr[0]);
-    animFlip(document.getElementById('pm1'), mStr[1]);
-    animFlip(document.getElementById('ps0'), sStr[0]);
-    animFlip(document.getElementById('ps1'), sStr[1]);
-  }
-}
-
-/* ===== 核心计时动力学 ===== */
-function selectPlan(planId) {
-  clearInterval(timerState.intervalId);
-  timerState.isRunning = false;
-  currentPlan = plans.find(p => p.id === planId);
-  document.getElementById('currentTaskDisplay').textContent = `当前任务: ${currentPlan.name}`;
-  timerState.timeElapsed = 0;
-  timerState.timeRemaining = currentPlan.duration * 60;
-  updateDisplay(true);
-  updatePlayIcon();
-  showPage('clock');
-}
-
-function toggleTimer() {
-  if (timerState.isRunning) {
-    clearInterval(timerState.intervalId);
-    timerState.isRunning = false;
-  } else {
-    if(!timerState.startTimeStamp) timerState.startTimeStamp = new Date();
-    timerState.isRunning = true;
-    timerState.intervalId = setInterval(() => {
-      if (currentPlan.type === 'countdown') {
-        if (timerState.timeRemaining <= 0) {
-          saveFocusRecord(currentPlan.name, currentPlan.duration * 60);
-          showToast(`🎉 恭喜完成任务：${currentPlan.name}`);
-          resetTimer();
-          return;
-        }
-        timerState.timeRemaining--;
+    function toggleTimer() {
+      const startBtn = document.getElementById('start-btn');
+      if (isRunning) {
+        // 暂停计时
+        clearInterval(timer);
+        startBtn.innerText = '开始';
       } else {
-        timerState.timeElapsed++;
+        // 开始计时
+        timer = setInterval(() => {
+          if (timeLeft > 0) {
+            timeLeft--;
+            updateDisplay();
+          } else {
+            // 时间到！
+            clearInterval(timer);
+            isRunning = false;
+            startBtn.innerText = '开始';
+            
+            // 播放结束铃声 (catch 用于处理浏览器防止自动播放的策略)
+            alarmSound.play().catch(e => console.log("音频播放成功，但需注意需要用户在页面上有过任意点击动作。"));
+            alert('一个专注周期结束啦！请站起来活动一下吧。');
+            
+            // 结束后重置时间
+            switchPlan(currentPlan, document.documentElement.style.getPropertyValue('--theme-color') || '#ff6b6b');
+          }
+        }, 1000);
+        startBtn.innerText = '暂停';
       }
+      isRunning = !isRunning;
+    }
+
+    function resetTimer() {
+      clearInterval(timer);
+      isRunning = false;
+      document.getElementById('start-btn').innerText = '开始';
+      // 恢复当前计划对应的时间
+      if (currentPlan === 'work') timeLeft = 25 * 60;
+      if (currentPlan === 'read') timeLeft = 30 * 60;
+      if (currentPlan === 'meditate') timeLeft = 10 * 60;
       updateDisplay();
-    }, 1000);
-  }
-  updatePlayIcon();
-}
-
-function resetTimer() {
-  clearInterval(timerState.intervalId);
-  timerState.isRunning = false;
-  timerState.timeElapsed = 0;
-  timerState.timeRemaining = currentPlan.duration * 60;
-  timerState.startTimeStamp = null;
-  updateDisplay(true);
-  updatePlayIcon();
-}
-
-function skipTimer() {
-  if(timerState.isRunning || timerState.timeElapsed > 5 || currentPlan.type === 'countdown') {
-    let finalDuration = currentPlan.type === 'countdown' ? currentPlan.duration * 60 : timerState.timeElapsed;
-    if(finalDuration > 0) {
-      saveFocusRecord(currentPlan.name, finalDuration);
-      showToast("⏹️ 已结转并保存当前专注段。");
     }
-  }
-  resetTimer();
-}
 
-function updatePlayIcon() {
-  document.getElementById('playIcon').innerHTML = timerState.isRunning 
-    ? '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
-    : '<polygon points="5 3 19 12 5 21 5 3"/>';
-}
-
-function saveFocusRecord(taskName, durationInSeconds) {
-  const start = timerState.startTimeStamp || new Date(Date.now() - durationInSeconds * 1000);
-  const log = {
-    taskName,
-    duration: Math.round(durationInSeconds / 60), // 保存为分钟
-    timestamp: start.getTime(),
-    hour: start.getHours(),
-    day: (start.getDay() === 0) ? 6 : start.getDay() - 1 // 转换为周一为0，周日为6
-  };
-  historyLogs.push(log);
-  localStorage.setItem('focus_history', JSON.stringify(historyLogs));
-  // 刷新随机骚话
-  const randomQ = quotes[Math.floor(Math.random() * quotes.length)];
-  document.getElementById('quoteZh').textContent = randomQ.zh;
-  document.getElementById('quoteEn').textContent = randomQ.en;
-}
-
-/* ===== 计划管理控制流 ===== */
-function toggleFormDuration() {
-  const type = document.getElementById('planType').value;
-  document.getElementById('formDurationGroup').style.display = type === 'countup' ? 'none' : 'flex';
-}
-
-function createNewPlan() {
-  const name = document.getElementById('planName').value.trim();
-  const type = document.getElementById('planType').value;
-  const duration = parseInt(document.getElementById('planDuration').value) || 25;
-  
-  if (!name) { showToast("请输入任务名称"); return; }
-  
-  const newPlan = { id: 'p_' + Date.now(), name, type, duration: type === 'countup' ? 0 : duration };
-  plans.push(newPlan);
-  localStorage.setItem('custom_plans', JSON.stringify(plans));
-  renderPlans();
-  showToast("计划创建成功！");
-  document.getElementById('planName').value = "";
-}
-
-function deletePlan(id, event) {
-  event.stopPropagation();
-  plans = plans.filter(p => p.id !== id);
-  localStorage.setItem('custom_plans', JSON.stringify(plans));
-  renderPlans();
-}
-
-function renderPlans() {
-  const grid = document.getElementById('plansGrid');
-  grid.innerHTML = plans.map(p => `
-    <div class="plan-card" onclick="selectPlan('${p.id}')">
-      <span class="plan-badge">${p.type === 'countdown' ? '倒计时' : '正计时'}</span>
-      <div class="plan-name">${p.name}</div>
-      <div class="plan-meta">${p.type === 'countdown' ? `${p.duration} 分钟规格` : '无时限，按需结算'}</div>
-      <div class="btn danger" style="margin-top:10px; padding:4px; font-size:11px" onclick="deletePlan('${p.id}', event)">删除</div>
-    </div>
-  `).join('');
-}
-
-/* ===== 数据图表统计引擎 ===== */
-function renderStats() {
-  document.getElementById('statCount').textContent = `${historyLogs.length} 次`;
-  const totalMins = historyLogs.reduce((acc, curr) => acc + curr.duration, 0);
-  document.getElementById('statTotalTime').textContent = `${totalMins} 分`;
-  const maxMin = historyLogs.reduce((acc, curr) => Math.max(acc, curr.duration), 0);
-  document.getElementById('statMax').textContent = `${maxMin} 分`;
-  
-  const uniqueTypes = [...new Set(historyLogs.map(l => l.taskName))].length;
-  document.getElementById('statTypes').textContent = `${uniqueTypes} 种`;
-
-  // 计算扇形图数据 (聚合同名任务)
-  const groupData = {};
-  historyLogs.forEach(log => {
-    groupData[log.taskName] = (groupData[log.taskName] || 0) + log.duration;
-  });
-
-  const labels = Object.keys(groupData);
-  const dataValues = Object.values(groupData);
-
-  if (chartInstance) chartInstance.destroy();
-  
-  const ctx = document.getElementById('pieChart').getContext('2d');
-  if(labels.length === 0) {
-    // 默认空状态底图
-    chartInstance = new Chart(ctx, { type: 'pie', data: { labels: ['暂无数据'], datasets: [{ data: [1], backgroundColor: ['#222'] }] }, options: { plugins: { legend: { display: false } } } });
-    return;
-  }
-
-  chartInstance = new Chart(ctx, {
-    type: 'pie',
-    data: {
-      labels: labels,
-      datasets: [{
-        data: dataValues,
-        backgroundColor: ['#3498db', '#2ecc71', '#9b59b6', '#e67e22', '#f1c40f', '#e74c3c', '#1abc9c'],
-        borderWidth: 1,
-        borderColor: '#111'
-      }]
-    },
-    options: {
-      plugins: {
-        legend: { display: true, labels: { color: '#888', font: { size: 10 } }, position: 'bottom' }
-      }
+    // ==================== 4. 英语原生语音朗读 (Web Speech API) ====================
+    function speakEnglish() {
+      const text = document.getElementById('english-text').innerText;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';  // 设置为美式英语发音
+      utterance.rate = 0.9;      // 语速调至 0.9，听起来更舒适易懂
+      window.speechSynthesis.speak(utterance);
     }
-  });
-}
 
-/* ===== 一周专注纵览网格渲染引擎 ===== */
-function renderWeekTimeline() {
-  const weekGrid = document.getElementById('weekGrid');
-  weekGrid.innerHTML = ''; // 清空
-  
-  // 1. 渲染头部周一~周日
-  let html = '<div class="week-header-cell">时间</div>';
-  const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-  dayNames.forEach(d => { html += `<div class="week-header-cell">${d}</div>`; });
-  
-  // 2. 建立左侧 24 小时轴列
-  html += '<div class="time-col">';
-  for(let i=0; i<24; i++) {
-    html += `<div class="time-slot">${String(i).padStart(2,'0')}:00</div>`;
-  }
-  html += '</div>';
-  
-  // 3. 建立 7 天的每日垂直列
-  for(let d=0; d<7; d++) {
-    html += `<div class="day-col" id="day-col-${d}"></div>`;
-  }
-  weekGrid.innerHTML = html;
-
-  // 4. 将历史数据按矩阵和位置关系渲染到格子里
-  // 为了确保效果，我们只展示本周内（最近7天）的数据
-  const OneWeekAgo = Date.now() - 7 * 24 * 3600 * 1000;
-  
-  historyLogs.forEach(log => {
-    if (log.timestamp < OneWeekAgo) return; // 略过老数据
-    
-    const targetCol = document.getElementById(`day-col-${log.day}`);
-    if (targetCol) {
-      const block = document.createElement('div');
-      block.className = 'time-block';
-      
-      // 每小时格高度为 40px，因此每分钟高度 = 40 / 60 = 0.666px
-      const topPos = log.hour * 40 + (new Date(log.timestamp).getMinutes() * 0.66);
-      const blockHeight = Math.max(18, log.duration * 0.66); // 至少保留18px高度防止文字挤压
-      
-      block.style.top = `${topPos}px`;
-      block.style.height = `${blockHeight}px`;
-      block.innerHTML = `<strong>${log.taskName}</strong><br>${log.duration}m`;
-      block.title = `${log.taskName}: 专注 ${log.duration}分钟`;
-      
-      targetCol.appendChild(block);
+    // ==================== 1. 备忘录 LocalStorage 存储操作 ====================
+    function getMemos() {
+      return JSON.parse(localStorage.getItem('memos')) || [];
     }
-  });
-}
 
-/* ===== 名言池自研管理功能 ===== */
-function addCustomQuote() {
-  const zh = document.getElementById('adminZh').value.trim();
-  const en = document.getElementById('adminEn').value.trim();
-  if(!zh || !en) { showToast("中英文均不可为空"); return; }
-  quotes.push({ zh, en });
-  localStorage.setItem('custom_quotes', JSON.stringify(quotes));
-  renderAdminQuotes();
-  document.getElementById('adminZh').value = '';
-  document.getElementById('adminEn').value = '';
-  showToast("添加名言成功！");
-}
+    function saveMemos(memos) {
+      localStorage.setItem('memos', JSON.stringify(memos));
+    }
 
-function deleteQuote(idx) {
-  if (quotes.length <= 1) { showToast("名言池至少需要保留一条数据"); return; }
-  quotes.splice(idx, 1);
-  localStorage.setItem('custom_quotes', JSON.stringify(quotes));
-  renderAdminQuotes();
-}
+    function addMemo() {
+      const input = document.getElementById('memo-input');
+      const text = input.value.trim();
+      if (!text) return;
 
-function renderAdminQuotes() {
-  const list = document.getElementById('adminQuotesList');
-  list.innerHTML = quotes.map((q, i) => `
-    <div class="quote-item">
-      <div>
-        <div style="font-size:14px; color:#ddd;">${q.zh}</div>
-        <div style="font-size:11px; color:#666; font-style:italic;">${q.en}</div>
-      </div>
-      <button class="btn danger" style="padding:4px 8px; font-size:11px" onclick="deleteQuote(${i})">删除</button>
-    </div>
-  `).join('');
-}
+      const memos = getMemos();
+      memos.push({ id: Date.now(), text: text });
+      saveMemos(memos);
+      
+      input.value = '';
+      renderMemos();
+    }
 
-// 页面初始化加载
-updateDisplay(true);
-</script>
+    function deleteMemo(id) {
+      let memos = getMemos();
+      memos = memos.filter(memo => memo.id !== id);
+      saveMemos(memos);
+      renderMemos();
+    }
+
+    function renderMemos() {
+      const list = document.getElementById('memo-list');
+      list.innerHTML = '';
+      const memos = getMemos();
+      
+      memos.forEach(memo => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span>${memo.text}</span>
+          <button onclick="deleteMemo(${memo.id})">✕</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+  </script>
 </body>
 </html>
