@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>番茄钟</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a0a0a;
+    color: #f0f0f0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    min-height: 100vh;
+  }
+
+  /* NAV */
+  .nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 32px; border-bottom: 1px solid #1a1a1a;
+    position: sticky; top: 0; background: #0a0a0a; z-index: 100;
+  }
+  .nav-logo { font-size: 15px; font-weight: 500; color: #888; letter-spacing: .04em; }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab {
+    padding: 7px 18px; border-radius: 8px; border: none;
+    background: transparent; color: #555; font-size: 13px; cursor: pointer; transition: all .2s;
+  }
+  .nav-tab.active { background: #1e1e1e; color: #f0f0f0; }
+  .nav-tab:hover:not(.active) { color: #aaa; }
+
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: flex; }
+
+  /* ===== CLOCK PAGE ===== */
+  #page-clock {
+    flex-direction: row; align-items: center; justify-content: center;
+    min-height: calc(100vh - 53px); padding: 2rem; gap: 4rem;
+  }
+  .clock-side { display: flex; flex-direction: column; align-items: center; gap: 1.8rem; flex-shrink: 0; }
+  .tab-bar { display: flex; border: 1px solid #333; border-radius: 24px; overflow: hidden; }
+  .tab-btn { padding: 9px 28px; border: none; background: transparent; color: #666; font-size: 14px; cursor: pointer; transition: all .2s; }
+  .tab-btn.active { background: #222; color: #f0f0f0; font-weight: 500; }
+  .panel { display: flex; flex-direction: column; align-items: center; gap: 1.8rem; }
+  .panel.hidden { display: none; }
+  .mode-tabs { display: flex; gap: 8px; }
+  .mode-btn { padding: 6px 18px; border-radius: 20px; border: 1px solid #333; background: transparent; color: #666; font-size: 13px; cursor: pointer; transition: all .2s; }
+  .mode-btn.active { background: #222; color: #f0f0f0; border-color: #555; }
+  .flip-clock { display: flex; align-items: center; gap: 14px; }
+  .flip-unit { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .flip-unit-label { font-size: 11px; color: #444; letter-spacing: .08em; }
+  .flip-pair { display: flex; gap: 5px; }
+  .flip-digit { width: 72px; height: 100px; position: relative; }
+  .f-top { position: absolute; top: 0; left: 0; width: 100%; height: 50%; overflow: hidden; border-radius: 8px 8px 0 0; background: #1e1e1e; border: 1px solid #2a2a2a; border-bottom: 1px solid #111; display: flex; align-items: flex-end; justify-content: center; }
+  .f-bot { position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; overflow: hidden; border-radius: 0 0 8px 8px; background: #181818; border: 1px solid #2a2a2a; border-top: none; display: flex; align-items: flex-start; justify-content: center; }
+  .f-top span { font-size: 68px; font-weight: 500; line-height: 1; transform: translateY(50%); color: #e8f4ff; font-variant-numeric: tabular-nums; }
+  .f-bot span { font-size: 68px; font-weight: 500; line-height: 1; transform: translateY(-50%); color: #c8e4f8; font-variant-numeric: tabular-nums; }
+  .center-line { position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: #0a0a0a; z-index: 5; transform: translateY(-50%); }
+  .sep { display: flex; flex-direction: column; gap: 18px; padding-bottom: 26px; }
+  .sep-dot { width: 7px; height: 7px; border-radius: 50%; background: #333; }
+  .controls { display: flex; gap: 14px; align-items: center; }
+  .ctrl-btn { width: 52px; height: 52px; border-radius: 50%; border: 1px solid #333; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #aaa; transition: background .15s, color .15s; font-size: 13px; }
+  .ctrl-btn:hover { background: #1e1e1e; color: #f0f0f0; }
+  .ctrl-btn.primary { width: 68px; height: 68px; border-color: #555; color: #f0f0f0; }
+  .ctrl-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .ctrl-btn.primary svg { width: 28px; height: 28px; }
+  .session-info { font-size: 13px; color: #444; display: flex; align-items: center; gap: 8px; }
+  .s-dot { width: 8px; height: 8px; border-radius: 50%; background: #E24B4A; }
+  .s-dot.break { background: #1D9E75; }
+  .lap-list { width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; }
+  .lap-row { display: flex; justify-content: space-between; padding: 7px 12px; border-radius: 8px; background: #1a1a1a; font-size: 13px; color: #555; }
+  .lap-row span:last-child { font-variant-numeric: tabular-nums; color: #ccc; font-weight: 500; }
+  .divider { width: 1px; height: 280px; background: linear-gradient(to bottom, transparent, #2a2a2a 30%, #2a2a2a 70%, transparent); flex-shrink: 0; }
+  .quote-side { display: flex; flex-direction: column; justify-content: center; gap: 2rem; max-width: 320px; width: 100%; }
+  .quote-card { display: flex; flex-direction: column; gap: 1.4rem; opacity: 1; transition: opacity 0.6s ease; }
+  .quote-card.fade { opacity: 0; }
+  .quote-mark { font-size: 48px; line-height: 1; color: #2a2a2a; font-family: Georgia, serif; user-select: none; }
+  .quote-zh { font-size: 18px; font-weight: 500; color: #e8e8e8; line-height: 1.65; letter-spacing: .02em; }
+  .quote-en { font-size: 13px; color: #555; line-height: 1.75; font-style: italic; }
+  .quote-meta { display: flex; align-items: center; justify-content: space-between; margin-top: .5rem; }
+  .quote-refresh { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #444; cursor: pointer; border: none; background: transparent; padding: 0; transition: color .2s; }
+  .quote-refresh:hover { color: #888; }
+  .quote-refresh svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .quote-timer { font-size: 11px; color: #333; font-variant-numeric: tabular-nums; }
+
+  /* ===== ADMIN PAGE ===== */
+  #page-admin {
+    flex-direction: column; min-height: calc(100vh - 53px);
+    padding: 2.5rem 2rem; max-width: 760px; margin: 0 auto; width: 100%; gap: 2rem;
+  }
+  .admin-header { display: flex; align-items: baseline; justify-content: space-between; }
+  .admin-title { font-size: 18px; font-weight: 500; color: #e0e0e0; }
+  .admin-count { font-size: 13px; color: #444; }
+
+  .add-form {
+    background: #111; border: 1px solid #222; border-radius: 12px;
+    padding: 1.4rem 1.6rem; display: flex; flex-direction: column; gap: 1rem;
+  }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-field { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-size: 12px; color: #555; letter-spacing: .04em; }
+  .form-input {
+    background: #0a0a0a; border: 1px solid #272727; border-radius: 8px;
+    color: #e0e0e0; font-size: 14px; padding: 10px 12px;
+    outline: none; transition: border-color .2s; resize: vertical; min-height: 64px;
+    font-family: inherit;
+  }
+  .form-input:focus { border-color: #444; }
+  .form-input::placeholder { color: #333; }
+  .form-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .btn {
+    padding: 8px 20px; border-radius: 8px; border: 1px solid #333;
+    font-size: 13px; cursor: pointer; transition: all .2s; background: transparent; color: #aaa;
+  }
+  .btn:hover { background: #1a1a1a; color: #f0f0f0; }
+  .btn.primary { background: #222; border-color: #444; color: #f0f0f0; }
+  .btn.primary:hover { background: #2a2a2a; }
+  .btn.danger { color: #E24B4A; border-color: transparent; }
+  .btn.danger:hover { background: #1a0a0a; border-color: #3a1a1a; }
+
+  .quotes-list { display: flex; flex-direction: column; gap: 6px; }
+  .quote-item {
+    background: #111; border: 1px solid #1a1a1a; border-radius: 10px;
+    padding: 14px 16px; display: flex; gap: 14px; align-items: flex-start;
+    transition: border-color .2s;
+  }
+  .quote-item:hover { border-color: #2a2a2a; }
+  .quote-item-idx { font-size: 12px; color: #333; min-width: 24px; padding-top: 2px; font-variant-numeric: tabular-nums; }
+  .quote-item-body { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .quote-item-zh { font-size: 14px; color: #d0d0d0; line-height: 1.5; }
+  .quote-item-en { font-size: 12px; color: #444; font-style: italic; line-height: 1.5; }
+  .quote-item-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .icon-btn {
+    width: 30px; height: 30px; border-radius: 6px; border: none;
+    background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    color: #444; transition: all .2s;
+  }
+  .icon-btn:hover { background: #1a1a1a; color: #aaa; }
+  .icon-btn.del:hover { background: #1a0808; color: #E24B4A; }
+  .icon-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  .empty-state { text-align: center; padding: 3rem; color: #333; font-size: 14px; }
+
+  /* edit inline */
+  .quote-item.editing { border-color: #333; background: #0e0e0e; }
+  .edit-input {
+    background: #0a0a0a; border: 1px solid #2a2a2a; border-radius: 6px;
+    color: #e0e0e0; font-size: 13px; padding: 6px 8px;
+    outline: none; width: 100%; font-family: inherit; resize: none;
+  }
+  .edit-input:focus { border-color: #444; }
+
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(16px);
+    background: #1e1e1e; border: 1px solid #333; border-radius: 10px;
+    padding: 10px 20px; font-size: 13px; color: #ccc;
+    opacity: 0; transition: all .3s; pointer-events: none; z-index: 999;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 800px) {
+    #page-clock { flex-direction: column; gap: 2.5rem; }
+    .divider { width: 200px; height: 1px; background: linear-gradient(to right, transparent, #2a2a2a 30%, #2a2a2a 70%, transparent); }
+    .quote-side { max-width: 100%; align-items: center; text-align: center; }
+    .quote-mark { display: none; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <span class="nav-logo">🍅 番茄钟</span>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('clock',this)">计时器</button>
+    <button class="nav-tab" onclick="showPage('admin',this)">短语管理</button>
+  </div>
+</nav>
+
+<!-- CLOCK PAGE -->
+<div id="page-clock" class="page active">
+  <div class="clock-side">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('pomo',this)">番茄钟</button>
+      <button class="tab-btn" onclick="switchTab('sw',this)">正计时</button>
+    </div>
+    <div id="panel-pomo" class="panel">
+      <div class="mode-tabs">
+        <button class="mode-btn active" onclick="setMode('work',this)">专注 25min</button>
+        <button class="mode-btn" onclick="setMode('short',this)">短休 5min</button>
+        <button class="mode-btn" onclick="setMode('long',this)">长休 15min</button>
+      </div>
+      <div class="flip-clock">
+        <div class="flip-unit">
+          <div class="flip-pair">
+            <div class="flip-digit" id="pm0"><div class="f-top"><span>2</span></div><div class="center-line"></div><div class="f-bot"><span>2</span></div></div>
+            <div class="flip-digit" id="pm1"><div class="f-top"><span>5</span></div><div class="center-line"></div><div class="f-bot"><span>5</span></div></div>
+          </div>
+          <div class="flip-unit-label">分钟</div>
+        </div>
+        <div class="sep"><div class="sep-dot"></div><div class="sep-dot"></div></div>
+        <div class="flip-unit">
+          <div class="flip-pair">
+            <div class="flip-digit" id="ps0"><div class="f-top"><span>0</span></div><div class="center-line"></div><div class="f-bot"><span>0</span></div></div>
+            <div class="flip-digit" id="ps1"><div class="f-top"><span>0</span></div><div class="center-line"></div><div class="f-bot"><span>0</span></div></div>
+          </div>
+          <div class="flip-unit-label">秒钟</div>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="ctrl-btn" onclick="resetPomo()"><svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg></button>
+        <button class="ctrl-btn primary" onclick="togglePomo()"><svg id="pomoIcon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
+        <button class="ctrl-btn" onclick="skipPomo()"><svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg></button>
+      </div>
+      <div class="session-info">
+        <div class="s-dot" id="sDot"></div>
+        <span id="sLabel">第 1 个番茄</span>
+        <span style="color:#2a2a2a">·</span>
+        <span id="sDots"></span>
+      </div>
+    </div>
+    <div id="panel-sw" class="panel hidden">
+      <div class="flip-clock">
+        <div class="flip-unit">
+          <div class="flip-pair">
+            <div class="flip-digit" id="sh0"><div class="f-top"><span>0</span></div><div class="center-line"></div><div class="f-bot"><span>0</span></div></div>
+            <div class="flip-digit" id="sh1"><div class="f-top"><span>0</span></div><div class="center-line"></div><div class="f-bot"><span>0</span></div></div>
+          </div>
+          <div class="flip-unit-label">小时</div>
+        </div>
+        <div class="sep"><div class="sep-dot"></div><div class="sep-dot"></div></div>
+        <div class="flip-unit">
+          <div class="flip-pair">
+            <div class="flip-digit" id="sm0"><div class="f-top"><span>0</span></div><div class="center-line"></div><div class="f-bot"><span>0</span></div></div>
+            <div class="flip-digit" id="sm1"><div class="f-top"><span>0</span></div><div class="center-line"></div><div class="f-bot"><span>0</span></div></div>
+          </div>
+          <div class="flip-unit-label">分钟</div>
+        </div>
+        <div class="sep"><div class="sep-dot"></div><div class="sep-dot"></div></div>
+        <div class="flip-unit">
+          <div class="flip-pair">
+            <div class="flip-digit" id="ss0"><div class="f-top"><span>0</span></div><div class="center-line"></div><div class="f-bot"><span>0</span></div></div>
+            <div class="flip-digit" id="ss1"><div class="f-top"><span>0</span></div><div class="center-line"></div><div class="f-bot"><span>0</span></div></div>
+          </div>
+          <div class="flip-unit-label">秒钟</div>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="ctrl-btn" onclick="recordLap()" style="font-size:13px;color:#aaa">计次</button>
+        <button class="ctrl-btn primary" onclick="toggleSW()"><svg id="swIcon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
+        <button class="ctrl-btn" onclick="resetSW()"><svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg></button>
+      </div>
+      <div class="lap-list" id="lapList"></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="quote-side">
+    <div class="quote-card" id="quoteCard">
+      <div class="quote-mark">"</div>
+      <div class="quote-zh" id="quoteZh"></div>
+      <div class="quote-en" id="quoteEn"></div>
+      <div class="quote-meta">
+        <button class="quote-refresh" onclick="nextQuote()">
+          <svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg>
+          换一句
+        </button>
+        <span class="quote-timer" id="quoteTimer"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PAGE -->
+<div id="page-admin" class="page">
+  <div class="admin-header">
+    <span class="admin-title">短语管理</span>
+    <span class="admin-count" id="adminCount"></span>
+  </div>
+
+  <div class="add-form">
+    <div class="form-row">
+      <div class="form-field">
+        <label class="form-label">中文短语</label>
+        <textarea class="form-input" id="inputZh" placeholder="输入励志短语（中文）…" rows="3"></textarea>
+      </div>
+      <div class="form-field">
+        <label class="form-label">英文短语</label>
+        <textarea class="form-input" id="inputEn" placeholder="Enter motivational phrase (English)…" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="clearForm()">清空</button>
+      <button class="btn primary" onclick="addQuote()">添加短语</button>
+    </div>
+  </div>
+
+  <div class="quotes-list" id="quotesList"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== STORAGE ===== */
+const DEFAULT_QUOTES = [
+  { zh: "不积跬步，无以至千里。", en: "A journey of a thousand miles begins with a single step." },
+  { zh: "专注当下，每一秒都是礼物。", en: "Focus on the present — every second is a gift." },
+  { zh: "坚持，是平凡走向卓越的桥梁。", en: "Persistence is the bridge between mediocrity and excellence." },
+  { zh: "你比自己想象的更有力量。", en: "You are stronger than you think." },
+  { zh: "今日之痛苦，明日之力量。", en: "Today's struggle is tomorrow's strength." },
+  { zh: "没有捷径，只有每一步踏实的积累。", en: "There are no shortcuts — only steady steps forward." },
+  { zh: "深呼吸，然后继续前行。", en: "Take a deep breath, then keep going." },
+  { zh: "专注比努力更重要。", en: "Focus matters more than hustle." },
+  { zh: "进步，不是偶然，而是习惯。", en: "Progress is not an accident — it's a habit." },
+  { zh: "休息是为了更好地出发。", en: "Rest is preparation for a better start." },
+  { zh: "每一次专注，都是对未来自己的投资。", en: "Every focused session is an investment in your future self." },
+  { zh: "不要停止，直到你感到骄傲。", en: "Don't stop until you're proud." },
+  { zh: "困难是伪装成机会的礼物。", en: "Difficulty is opportunity in disguise." },
+  { zh: "先完成，再完美。", en: "Done is better than perfect." },
+  { zh: "你现在的努力，是在与未来的自己道谢。", en: "Your effort today is a thank-you letter to your future self." },
+  { zh: "把每一天当作新的开始。", en: "Treat every day as a fresh start." },
+  { zh: "小事做精，大事自成。", en: "Master the small things, and the great will follow." },
+  { zh: "时间不会等待，但你可以掌控它。", en: "Time won't wait, but you can command it." },
+  { zh: "每一分专注，都在塑造更好的你。", en: "Every minute of focus shapes a better version of you." },
+  { zh: "成功不是终点，坚持才是旅途。", en: "Success is not a destination — perseverance is the journey." },
+  { zh: "相信过程，结果自会到来。", en: "Trust the process; the results will come." },
+  { zh: "把恐惧变成燃料。", en: "Turn your fear into fuel." },
+  { zh: "平静的海面，练不出优秀的水手。", en: "Calm seas never made a skilled sailor." },
+  { zh: "一次一步，一天一天，终将到达。", en: "One step at a time, one day at a time — you'll get there." },
+  { zh: "专注是最好的自律。", en: "Focus is the finest form of self-discipline." },
+];
+
+function loadQuotes() {
+  try {
+    const s = localStorage.getItem('pomo_quotes');
+    return s ? JSON.parse(s) : DEFAULT_QUOTES.slice();
+  } catch(e) { return DEFAULT_QUOTES.slice(); }
+}
+function saveQuotes() {
+  try { localStorage.setItem('pomo_quotes', JSON.stringify(QUOTES)); } catch(e){}
+}
+
+let QUOTES = loadQuotes();
+let currentIdx = Math.floor(Math.random() * QUOTES.length);
+let nextRefreshTime = Date.now() + 3600 * 1000;
+
+/* ===== NAV ===== */
+function showPage(page, btn) {
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('page-clock').classList.toggle('active', page === 'clock');
+  document.getElementById('page-admin').classList.toggle('active', page === 'admin');
+  if (page === 'admin') renderAdminList();
+}
+
+/* ===== TOAST ===== */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ===== ADMIN ===== */
+function renderAdminList() {
+  const list = document.getElementById('quotesList');
+  document.getElementById('adminCount').textContent = QUOTES.length + ' 条短语';
+  if (QUOTES.length === 0) {
+    list.innerHTML = '<div class="empty-state">还没有短语，添加第一条吧</div>';
+    return;
+  }
+  list.innerHTML = QUOTES.map((q, i) => `
+    <div class="quote-item" id="qi-${i}">
+      <span class="quote-item-idx">${i+1}</span>
+      <div class="quote-item-body">
+        <div class="quote-item-zh">${escHtml(q.zh)}</div>
+        <div class="quote-item-en">${escHtml(q.en)}</div>
+      </div>
+      <div class="quote-item-actions">
+        <button class="icon-btn" onclick="startEdit(${i})" title="编辑">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="icon-btn del" onclick="deleteQuote(${i})" title="删除">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function addQuote() {
+  const zh = document.getElementById('inputZh').value.trim();
+  const en = document.getElementById('inputEn').value.trim();
+  if (!zh || !en) { showToast('中文和英文都不能为空'); return; }
+  QUOTES.unshift({ zh, en });
+  saveQuotes();
+  clearForm();
+  renderAdminList();
+  showToast('已添加新短语');
+  currentIdx = 0;
+}
+
+function clearForm() {
+  document.getElementById('inputZh').value = '';
+  document.getElementById('inputEn').value = '';
+}
+
+function deleteQuote(i) {
+  if (QUOTES.length <= 1) { showToast('至少保留一条短语'); return; }
+  QUOTES.splice(i, 1);
+  saveQuotes();
+  if (currentIdx >= QUOTES.length) currentIdx = 0;
+  renderAdminList();
+  showToast('已删除');
+}
+
+function startEdit(i) {
+  renderAdminList();
+  const item = document.getElementById('qi-'+i);
+  const q = QUOTES[i];
+  item.classList.add('editing');
+  item.querySelector('.quote-item-body').innerHTML = `
+    <textarea class="edit-input" id="edit-zh-${i}" rows="2">${escHtml(q.zh)}</textarea>
+    <textarea class="edit-input" id="edit-en-${i}" rows="2" style="margin-top:6px">${escHtml(q.en)}</textarea>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <button class="btn" style="padding:5px 14px;font-size:12px" onclick="renderAdminList()">取消</button>
+      <button class="btn primary" style="padding:5px 14px;font-size:12px" onclick="saveEdit(${i})">保存</button>
+    </div>
+  `;
+  item.querySelector('.quote-item-actions').style.display = 'none';
+}
+
+function saveEdit(i) {
+  const zh = document.getElementById('edit-zh-'+i).value.trim();
+  const en = document.getElementById('edit-en-'+i).value.trim();
+  if (!zh || !en) { showToast('内容不能为空'); return; }
+  QUOTES[i] = { zh, en };
+  saveQuotes();
+  renderAdminList();
+  showToast('已保存');
+}
+
+/* ===== QUOTE DISPLAY ===== */
+function showQuote(idx, animate) {
+  if (QUOTES.length === 0) return;
+  const card = document.getElementById('quoteCard');
+  const zh = document.getElementById('quoteZh');
+  const en = document.getElementById('quoteEn');
+  const q = QUOTES[idx] || QUOTES[0];
+  if (animate) {
+    card.classList.add('fade');
+    setTimeout(() => { zh.textContent = q.zh; en.textContent = q.en; card.classList.remove('fade'); }, 600);
+  } else {
+    zh.textContent = q.zh; en.textContent = q.en;
+  }
+}
+function nextQuote() {
+  if (QUOTES.length === 0) return;
+  currentIdx = (currentIdx + 1) % QUOTES.length;
+  nextRefreshTime = Date.now() + 3600 * 1000;
+  showQuote(currentIdx, true);
+}
+function updateQuoteTimer() {
+  if (QUOTES.length === 0) return;
+  const now = Date.now();
+  if (now >= nextRefreshTime) {
+    currentIdx = (currentIdx + 1) % QUOTES.length;
+    nextRefreshTime = Date.now() + 3600 * 1000;
+    showQuote(currentIdx, true);
+  }
+  const remain = Math.max(0, Math.floor((nextRefreshTime - now) / 1000));
+  const m = Math.floor(remain / 60), s = remain % 60;
+  document.getElementById('quoteTimer').textContent = m + ':' + String(s).padStart(2,'0') + ' 后刷新';
+}
+showQuote(currentIdx, false);
+setInterval(updateQuoteTimer, 1000);
+updateQuoteTimer();
+
+/* ===== FLIP CLOCK ===== */
+const FLAP = 340;
+function animFlip(el, newVal) {
+  const top = el.querySelector('.f-top span'), bot = el.querySelector('.f-bot span');
+  const old = top.textContent, nv = String(newVal);
+  if (old === nv) return;
+  const fT = document.createElement('div');
+  fT.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:50px;overflow:hidden;transform-origin:bottom center;border-radius:8px 8px 0 0;background:#1e1e1e;border:1px solid #2a2a2a;z-index:10';
+  fT.innerHTML = '<span style="font-size:68px;font-weight:500;line-height:1;transform:translateY(50%);color:#e8f4ff;font-variant-numeric:tabular-nums;display:flex;justify-content:center">'+old+'</span>';
+  const fB = document.createElement('div');
+  fB.style.cssText = 'position:absolute;top:50px;left:0;width:100%;height:50px;overflow:hidden;transform-origin:top center;border-radius:0 0 8px 8px;background:#181818;border:1px solid #2a2a2a;border-top:none;z-index:10;transform:rotateX(-90deg)';
+  fB.innerHTML = '<span style="font-size:68px;font-weight:500;line-height:1;transform:translateY(-50%);color:#c8e4f8;font-variant-numeric:tabular-nums;display:flex;justify-content:center">'+nv+'</span>';
+  top.textContent = nv; bot.textContent = nv;
+  el.appendChild(fT); el.appendChild(fB);
+  let st = null;
+  (function step(ts) {
+    if (!st) st = ts;
+    const p = Math.min((ts-st)/FLAP, 1), e = 1-Math.pow(1-p,3);
+    fT.style.transform = 'rotateX('+(e*-90)+'deg)';
+    fB.style.transform = 'rotateX('+((1-e)*-90)+'deg)';
+    if (p < 1) requestAnimationFrame(step); else { fT.remove(); fB.remove(); }
+  })(performance.now());
+}
+function setVal(id, val, force) {
+  const el = document.getElementById(id); if (!el) return;
+  const nv = String(val), top = el.querySelector('.f-top span');
+  if (force) { top.textContent = nv; el.querySelector('.f-bot span').textContent = nv; return; }
+  if (top.textContent !== nv) animFlip(el, val);
+}
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-pomo').classList.toggle('hidden', tab !== 'pomo');
+  document.getElementById('panel-sw').classList.toggle('hidden', tab !== 'sw');
+}
+
+/* ===== POMO ===== */
+const MODES = { work:25*60, short:5*60, long:15*60 };
+let mode='work', total=MODES.work, rem=MODES.work;
+let pomoRun=false, pomoTmr=null, pomos=0;
+function renderPomo(s,f){const m=Math.floor(s/60),sc=s%60;setVal('pm0',Math.floor(m/10),f);setVal('pm1',m%10,f);setVal('ps0',Math.floor(sc/10),f);setVal('ps1',sc%10,f);}
+function setMode(m,btn){document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');mode=m;total=MODES[m];rem=MODES[m];pomoRun=false;clearInterval(pomoTmr);setPomoBtnIcon(false);renderPomo(rem,true);updateSession();}
+function togglePomo(){if(pomoRun){pomoRun=false;clearInterval(pomoTmr);}else{pomoRun=true;pomoTmr=setInterval(tickPomo,1000);}setPomoBtnIcon(pomoRun);}
+function tickPomo(){if(rem<=0){clearInterval(pomoTmr);pomoRun=false;setPomoBtnIcon(false);if(mode==='work')pomos++;updateSession();return;}rem--;renderPomo(rem,false);}
+function resetPomo(){clearInterval(pomoTmr);pomoRun=false;rem=total;setPomoBtnIcon(false);renderPomo(rem,true);}
+function skipPomo(){clearInterval(pomoTmr);pomoRun=false;rem=0;if(mode==='work')pomos++;setPomoBtnIcon(false);renderPomo(rem,true);updateSession();}
+function setPomoBtnIcon(r){document.getElementById('pomoIcon').innerHTML=r?'<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>':'<polygon points="5 3 19 12 5 21 5 3"/>';}
+function updateSession(){document.getElementById('sDot').className='s-dot'+(mode==='work'?'':' break');document.getElementById('sLabel').textContent=mode==='work'?('第 '+(pomos+1)+' 个番茄'):(mode==='short'?'短休息中':'长休息中');let d='';for(let i=0;i<4;i++)d+='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 2px;background:'+(i<pomos%4?'#E24B4A':'#2a2a2a')+'"></span>';document.getElementById('sDots').innerHTML=d;}
+
+/* ===== STOPWATCH ===== */
+let swRun=false,swTmr=null,swEl=0,lapN=0,lapPrev=0;
+function renderSW(s,f){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;setVal('sh0',Math.floor(h/10),f);setVal('sh1',h%10,f);setVal('sm0',Math.floor(m/10),f);setVal('sm1',m%10,f);setVal('ss0',Math.floor(sc/10),f);setVal('ss1',sc%10,f);}
+function toggleSW(){if(swRun){swRun=false;clearInterval(swTmr);}else{swRun=true;swTmr=setInterval(()=>{swEl++;renderSW(swEl,false);},1000);}document.getElementById('swIcon').innerHTML=swRun?'<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>':'<polygon points="5 3 19 12 5 21 5 3"/>';}
+function resetSW(){clearInterval(swTmr);swRun=false;swEl=0;lapN=0;lapPrev=0;document.getElementById('swIcon').innerHTML='<polygon points="5 3 19 12 5 21 5 3"/>';document.getElementById('lapList').innerHTML='';renderSW(0,true);}
+function recordLap(){lapN++;const lt=swEl-lapPrev;lapPrev=swEl;const h=Math.floor(lt/3600),m=Math.floor((lt%3600)/60),s=lt%60;const fmt=(h?String(h).padStart(2,'0')+':':'')+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');const row=document.createElement('div');row.className='lap-row';row.innerHTML='<span>第 '+lapN+' 次</span><span>'+fmt+'</span>';document.getElementById('lapList').insertBefore(row,document.getElementById('lapList').firstChild);}
+
+renderPomo(rem,true); updateSession(); renderSW(0,true);
+</script>
+</body>
+</html>
