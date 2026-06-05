@@ -123,215 +123,6 @@
     .chart-section { grid-template-columns: 1fr; }
   }
 </style>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>极简纯色番茄钟</title>
-  <style>
-    /* ==================== 1. 彻底消除网页白边 & 全屏沉浸式样式 ==================== */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    /* 定义全局主题色变量，默认是番茄红 */
-    :root {
-      --theme-color: #ff6b6b;
-    }
-
-    html, body {
-      width: 100%;
-      height: 100%;
-      overflow-x: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-
-    /* 纯色背景，带丝滑过渡效果 */
-    body {
-      background-color: var(--theme-color);
-      color: #ffffff;
-      transition: background-color 0.5s ease;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-    }
-
-    /* 2. 顶部计划切换按钮 */
-    .plan-selector {
-      margin-top: 10px;
-      margin-bottom: 35px;
-      display: flex;
-      gap: 10px;
-    }
-
-    .plan-selector button {
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      color: white;
-      padding: 8px 16px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background 0.3s;
-    }
-
-    .plan-selector button:hover {
-      background: rgba(255, 255, 255, 0.4);
-    }
-
-    /* 主布局容器 */
-    .main-container {
-      width: 100%;
-      max-width: 400px;
-      display: flex;
-      flex-direction: column;
-      gap: 35px;
-      align-items: center;
-    }
-
-    /* 倒计时样式 */
-    .timer-section {
-      text-align: center;
-    }
-
-    #timer-display {
-      font-size: 80px;
-      font-weight: bold;
-      letter-spacing: 2px;
-      margin-bottom: 15px;
-    }
-
-    .timer-controls button {
-      background: #ffffff;
-      color: var(--theme-color);
-      border: none;
-      padding: 10px 25px;
-      font-size: 18px;
-      font-weight: bold;
-      border-radius: 25px;
-      margin: 0 5px;
-      cursor: pointer;
-      transition: transform 0.2s, color 0.5s;
-    }
-
-    .timer-controls button:active {
-      transform: scale(0.95);
-    }
-
-    /* 4. 英语每日一句样式 (高仿小喇叭图标) */
-    .english-section {
-      background: rgba(255, 255, 255, 0.15);
-      padding: 22px;
-      border-radius: 16px;
-      width: 100%;
-      text-align: center;
-      position: relative;
-    }
-
-    #english-text {
-      font-size: 18px;
-      font-weight: 500;
-      line-height: 1.4;
-      margin-bottom: 8px;
-    }
-
-    #chinese-text {
-      font-size: 14px;
-      opacity: 0.8;
-      margin-bottom: 15px;
-    }
-
-    .audio-btn {
-      background: rgba(255, 255, 255, 0.25);
-      border: none;
-      color: white;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.3s;
-    }
-
-    .audio-btn:hover {
-      background: rgba(255, 255, 255, 0.4);
-    }
-
-    /* 1. 备忘录样式 */
-    .memo-section {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 20px;
-      border-radius: 16px;
-    }
-
-    .memo-section h3 {
-      margin-bottom: 12px;
-      font-size: 16px;
-    }
-
-    .memo-input-box {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-
-    .memo-input-box input {
-      flex: 1;
-      background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      padding: 8px 12px;
-      border-radius: 8px;
-      color: white;
-      outline: none;
-    }
-
-    .memo-input-box input::placeholder {
-      color: rgba(255, 255, 255, 0.6);
-    }
-
-    .memo-input-box button {
-      background: white;
-      color: #333;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    #memo-list {
-      list-style: none;
-      max-height: 150px;
-      overflow-y: auto;
-    }
-
-    #memo-list li {
-      background: rgba(0, 0, 0, 0.1);
-      padding: 8px 12px;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 14px;
-    }
-
-    #memo-list li button {
-      background: none;
-      border: none;
-      color: rgba(255, 255, 255, 0.6);
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    #memo-list li button:hover {
-      color: #ff6b6b;
-    }
-  </style>
 </head>
 <body>
 
@@ -342,10 +133,6 @@
     <button class="nav-tab" onclick="showPage('plans',this)">专注计划</button>
     <button class="nav-tab" onclick="showPage('stats',this)">数据统计</button>
     <button class="nav-tab" onclick="showPage('admin',this)">名言管理</button>
-  <div class="plan-selector">
-    <button onclick="switchPlan('work', '#ff6b6b')">💻 工作</button>
-    <button onclick="switchPlan('read', '#4dabf7')">📚 读书</button>
-    <button onclick="switchPlan('meditate', '#51cf66')">🧘 冥想</button>
   </div>
 </nav>
 
@@ -406,13 +193,6 @@
       <div class="form-group" id="formDurationGroup">
         <label class="form-label">设定时长 (分钟)</label>
         <input type="number" id="planDuration" value="25" min="1">
-  <div class="main-container">
-    
-    <div class="timer-section">
-      <div id="timer-display">25:00</div>
-      <div class="timer-controls">
-        <button id="start-btn" onclick="toggleTimer()">开始</button>
-        <button id="reset-btn" onclick="resetTimer()">重置</button>
       </div>
       <button class="btn primary" onclick="createNewPlan()">添加此计划</button>
     </div>
@@ -436,12 +216,6 @@
     <div class="chart-wrapper">
       <h4 style="font-size:14px; margin-bottom:15px; color:#aaa;">各类专注分配比例</h4>
       <div style="width: 100%; max-width: 200px;"><canvas id="pieChart"></canvas></div>
-    <div class="english-section">
-      <p id="english-text">When the soul lies down in that grass the world is too full to talk about.</p>
-      <p id="chinese-text">当灵魂在那片草地上躺下，世界便丰盈得无法言说。</p>
-      <button class="audio-btn" onclick="speakEnglish()" title="播放发音">
-        <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-      </button>
     </div>
     
     <div class="chart-wrapper" style="align-items: stretch;">
@@ -449,27 +223,19 @@
       <div class="week-container">
         <div class="week-grid" id="weekGrid">
           </div>
-
-    <div class="memo-section">
-      <h3>📋 今日备忘</h3>
-      <div class="memo-input-box">
-        <input type="text" id="memo-input" placeholder="添加一个新任务...">
-        <button onclick="addMemo()">添加</button>
       </div>
-      <ul id="memo-list"></ul>
     </div>
-
   </div>
 </div>
 
 <div id="page-admin" class="page">
-  <h3 class="section-title">壹句中心</h3>
+  <h3 class="section-title">骚话/名言池管理</h3>
   <div class="add-form">
     <div class="form-row">
       <input type="text" id="adminZh" placeholder="中文短语">
       <input type="text" id="adminEn" placeholder="英文短语">
     </div>
-    <button class="btn primary" onclick="addCustomQuote()">添加</button>
+    <button class="btn primary" onclick="addCustomQuote()">加入豪华午餐</button>
   </div>
   <div class="quotes-list" id="adminQuotesList"></div>
 </div>
@@ -601,84 +367,9 @@ function toggleTimer() {
           return;
         }
         timerState.timeRemaining--;
-
-  <script>
-    // ==================== 全局变量 & 初始化 ====================
-    let timer;
-    let timeLeft = 25 * 60; // 默认25分钟
-    let isRunning = false;
-    let currentPlan = 'work';
-
-    // 初始化番茄钟结束提示音 (请确保在项目目录下有一个 alarm.mp3 文件)
-    const alarmSound = new Audio('alarm.mp3'); 
-
-    // 页面加载完成后自动读取本地备忘录
-    document.addEventListener('DOMContentLoaded', () => {
-      renderMemos();
-    });
-
-    // ==================== 2. 专注计划与颜色切换逻辑 ====================
-    function switchPlan(planName, colorHex) {
-      currentPlan = planName;
-      // 修改 CSS 变量，一键切换全局颜色
-      document.documentElement.style.setProperty('--theme-color', colorHex);
-      
-      // 根据不同的专注计划，自动切换默认倒计时长
-      if (planName === 'work') timeLeft = 25 * 60;
-      if (planName === 'read') timeLeft = 30 * 60;
-      if (planName === 'meditate') timeLeft = 10 * 60;
-      
-      resetTimer();
-    }
-
-    // ==================== 番茄钟倒计时核心逻辑 ====================
-    function updateDisplay() {
-      const minutes = Math.floor(timeLeft / 60);
-      const seconds = timeLeft % 60;
-      document.getElementById('timer-display').innerText = 
-        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
-
-    function toggleTimer() {
-      const startBtn = document.getElementById('start-btn');
-      if (isRunning) {
-        // 暂停计时
-        clearInterval(timer);
-        startBtn.innerText = '开始';
       } else {
         timerState.timeElapsed++;
-        // 开始计时
-        timer = setInterval(() => {
-          if (timeLeft > 0) {
-            timeLeft--;
-            updateDisplay();
-          } else {
-            // 时间到！
-            clearInterval(timer);
-            isRunning = false;
-            startBtn.innerText = '开始';
-            
-            // 播放结束铃声 (catch 用于处理浏览器防止自动播放的策略)
-            alarmSound.play().catch(e => console.log("音频播放成功，但需注意需要用户在页面上有过任意点击动作。"));
-            alert('一个专注周期结束啦！请站起来活动一下吧。');
-            
-            // 结束后重置时间
-            switchPlan(currentPlan, document.documentElement.style.getPropertyValue('--theme-color') || '#ff6b6b');
-          }
-        }, 1000);
-        startBtn.innerText = '暂停';
       }
-      isRunning = !isRunning;
-    }
-
-    function resetTimer() {
-      clearInterval(timer);
-      isRunning = false;
-      document.getElementById('start-btn').innerText = '开始';
-      // 恢复当前计划对应的时间
-      if (currentPlan === 'work') timeLeft = 25 * 60;
-      if (currentPlan === 'read') timeLeft = 30 * 60;
-      if (currentPlan === 'meditate') timeLeft = 10 * 60;
       updateDisplay();
     }, 1000);
   }
@@ -860,34 +551,7 @@ function renderWeekTimeline() {
       block.style.height = `${blockHeight}px`;
       block.innerHTML = `<strong>${log.taskName}</strong><br>${log.duration}m`;
       block.title = `${log.taskName}: 专注 ${log.duration}分钟`;
-
-    // ==================== 4. 英语原生语音朗读 (Web Speech API) ====================
-    function speakEnglish() {
-      const text = document.getElementById('english-text').innerText;
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';  // 设置为美式英语发音
-      utterance.rate = 0.9;      // 语速调至 0.9，听起来更舒适易懂
-      window.speechSynthesis.speak(utterance);
-    }
-
-    // ==================== 1. 备忘录 LocalStorage 存储操作 ====================
-    function getMemos() {
-      return JSON.parse(localStorage.getItem('memos')) || [];
-    }
-
-    function saveMemos(memos) {
-      localStorage.setItem('memos', JSON.stringify(memos));
-    }
-
-    function addMemo() {
-      const input = document.getElementById('memo-input');
-      const text = input.value.trim();
-      if (!text) return;
-
-      const memos = getMemos();
-      memos.push({ id: Date.now(), text: text });
-      saveMemos(memos);
-
+      
       targetCol.appendChild(block);
     }
   });
@@ -925,34 +589,9 @@ function renderAdminQuotes() {
     </div>
   `).join('');
 }
-      input.value = '';
-      renderMemos();
-    }
-
-    function deleteMemo(id) {
-      let memos = getMemos();
-      memos = memos.filter(memo => memo.id !== id);
-      saveMemos(memos);
-      renderMemos();
-    }
 
 // 页面初始化加载
 updateDisplay(true);
 </script>
-    function renderMemos() {
-      const list = document.getElementById('memo-list');
-      list.innerHTML = '';
-      const memos = getMemos();
-      
-      memos.forEach(memo => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <span>${memo.text}</span>
-          <button onclick="deleteMemo(${memo.id})">✕</button>
-        `;
-        list.appendChild(li);
-      });
-    }
-  </script>
 </body>
 </html>
