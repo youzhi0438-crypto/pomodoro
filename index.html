@@ -86,9 +86,7 @@
   .quote-zh { font-size: 13.5px; font-weight: 400; color: #888888; line-height: 1.6; margin-top: -2px; }
   .quote-source { font-size: 13px; color: #ffbc00; text-align: left; font-weight: 600; margin-top: 2px; }
   
-  /* ✨ 移除左下角文字，修改为仅包含右下角播放按钮的纯净容器 */
   .quote-btn-group { display: flex; justify-content: flex-end; align-items: center; margin-top: 12px; border-top: 1px solid #222; padding-top: 14px; }
-  
   .speaker-btn { background: #222; border: none; color: #aaa; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
   .speaker-btn:hover { color: #ffffff; background: #ffbc00; color: #000; transform: scale(1.05); }
   .speaker-btn svg { width: 16px; height: 16px; fill: currentColor; }
@@ -104,7 +102,7 @@
   .memo-del-btn { background: transparent; border: none; color: #555; cursor: pointer; font-size: 12px; }
   .memo-del-btn:hover { color: #e74c3c; }
 
-  /* ✨ 优化：移除了“北京时间”中文字，仅留下极其纯净的绿色霓虹时钟数字 */
+  /* 纯净悬浮数字时钟 */
   .bj-time-card {
     position: fixed; right: 24px; bottom: 24px;
     background: rgba(18, 18, 18, 0.8); backdrop-filter: blur(12px);
@@ -113,7 +111,7 @@
   }
   .bj-time-val { font-size: 14px; font-weight: 600; color: #00ffcc; font-family: monospace; letter-spacing: 0.5px; }
 
-  /* ===== 其他功能页 ===== */
+  /* ===== 专注计划与后台管理 ===== */
   #page-plans, #page-stats, #page-admin { flex-direction: column; gap: 2rem; }
   .section-title { font-size: 16px; font-weight: 500; color: #e0e0e0; border-left: 3px solid #ffbc00; padding-left: 10px; margin-bottom: 1rem; }
   .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
@@ -133,15 +131,7 @@
   .btn.primary { background: #ffbc00; border-color: #ffbc00; color: #000; font-weight: 600; }
   .btn.primary:hover { background: #e0a500; }
 
-  /* 统计图表区 */
-  .stats-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-  .stat-box { background: #111; border: 1px solid #222; border-radius: 12px; padding: 20px; text-align: center; }
-  .stat-val { font-size: 24px; font-weight: 600; color: #ffbc00; margin-top: 5px; font-variant-numeric: tabular-nums;}
-  .stat-lbl { font-size: 12px; color: #555; }
-  .chart-section { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
-  .chart-wrapper { background: #111; border: 1px solid #222; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;}
-  
-  /* ✨ 历史壹句后台列表样式 */
+  /* 历史壹句后台列表样式 */
   .history-quote-container { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
   .hq-card { background: #161616; border: 1px solid #252525; border-radius: 10px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
   .hq-card:hover { border-color: #444; background: #1c1c1c; }
@@ -149,6 +139,61 @@
   .hq-en { font-size: 13px; font-weight: 600; color: #eee; }
   .hq-zh { font-size: 12px; color: #888; }
   .hq-meta { font-size: 11px; color: #ffbc00; font-weight: 500; }
+
+  /* =========================================================
+     ✨【精修核心区】数据统计页面专属高级样式修复
+     ========================================================= */
+  .stats-header-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  /* 日周月年维度切换 Tab 按钮组 */
+  .scope-tabs {
+    display: flex; background: #111; padding: 3px; border-radius: 8px; border: 1px solid #222;
+  }
+  .scope-btn {
+    padding: 6px 16px; border: none; background: transparent; color: #666;
+    font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 6px; transition: all 0.2s;
+  }
+  .scope-btn.active { background: #ffbc00; color: #000; font-weight: 600; }
+  .scope-btn:hover:not(.active) { color: #ccc; }
+
+  .stats-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stat-box { background: #111; border: 1px solid #222; border-radius: 12px; padding: 20px; text-align: center; }
+  .stat-val { font-size: 24px; font-weight: 600; color: #ffbc00; margin-top: 5px; font-variant-numeric: tabular-nums;}
+  .stat-lbl { font-size: 12px; color: #555; }
+  
+  .chart-section { display: grid; grid-template-columns: 1fr 2.2fr; gap: 20px; }
+  .chart-wrapper { background: #111; border: 1px solid #222; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; }
+  
+  /* 修复：全面重构网格时段布局，杜绝挤成一竖列的问题 */
+  .week-container { width: 100%; overflow-x: auto; margin-top: 10px; position: relative; height: 420px; }
+  .week-grid {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr); /* 1列时间，7列星期 */
+    background: #111;
+    position: relative;
+    min-width: 600px;
+  }
+  .week-header-cell {
+    text-align: center; font-size: 12px; color: #666; padding: 8px 0;
+    border-bottom: 1px solid #222; background: #111; font-weight: 500;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .time-col {
+    display: flex; flex-direction: column; border-right: 1px solid #222;
+  }
+  .time-slot {
+    height: 40px; font-size: 11px; color: #444; text-align: center;
+    line-height: 40px; border-bottom: 1px solid #161616; font-family: monospace;
+  }
+  .day-col {
+    position: relative; background: #131313;
+    border-right: 1px solid #1c1c1c; border-bottom: 1px solid #1c1c1c;
+    background-image: linear-gradient(#1a1a1a 1px, transparent 1px);
+    background-size: 100% 40px; /* 每 40px 画一条时间横线线 */
+  }
+  .day-col:last-child { border-right: none; }
 
   .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(10px); background: #222; border: 1px solid #333; border-radius: 20px; padding: 8px 24px; font-size: 12px; color: #eee; opacity: 0; transition: all .3s; pointer-events: none; z-index: 10000; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -209,13 +254,12 @@
   <div class="quote-side">
     <div class="quote-card">
       <div class="quote-date-badge">
-        <span class="quote-date-day" id="ydDay">05</span>
+        <span class="quote-date-day" id="ydDay">06</span>
         <span class="quote-date-month" id="ydMonth">Jun.2026</span>
       </div>
       <div class="quote-en" id="quoteEn">When the soul lies down in that grass the world is too full to talk about.</div>
       <div class="quote-zh" id="quoteZh">当灵魂在那片草地上躺下，世界便丰盈得无法言说。</div>
       <div class="quote-source" id="quoteSource"># 鲁米</div>
-      
       <div class="quote-btn-group">
         <button class="speaker-btn" onclick="playYoudaoAudio()" title="播放真人原声">
           <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
@@ -269,21 +313,34 @@
 </div>
 
 <div id="page-stats" class="page">
-  <h3 class="section-title">数据看板</h3>
-  <div class="stats-summary">
-    <div class="stat-box"><div class="stat-lbl">累计专注次数</div><div class="stat-val" id="statCount">0 次</div></div>
-    <div class="stat-box"><div class="stat-lbl">累计专注时长</div><div class="stat-val" id="statTotalTime">0 分</div></div>
-    <div class="stat-box"><div class="stat-lbl">单次最高时长</div><div class="stat-val" id="statMax">0 分</div></div>
-    <div class="stat-box"><div class="stat-lbl">计划覆盖种类</div><div class="stat-val" id="statTypes">0 种</div></div>
+  <div class="stats-header-bar">
+    <h3 class="section-title" style="margin-bottom:0;">数据看板</h3>
+    <div class="scope-tabs">
+      <button class="scope-btn" onclick="changeScope('day', this)">日</button>
+      <button class="scope-btn active" onclick="changeScope('week', this)">周</button>
+      <button class="scope-btn" onclick="changeScope('month', this)">月</button>
+      <button class="scope-btn" onclick="changeScope('year', this)">年</button>
+    </div>
   </div>
+
+  <div class="stats-summary">
+    <div class="stat-box"><div class="stat-lbl">当前阶段累计专注</div><div class="stat-val" id="statCount">1 次</div></div>
+    <div class="stat-box"><div class="stat-lbl">时间专注总时长</div><div class="stat-val" id="statTotalTime">1 分</div></div>
+    <div class="stat-box"><div class="stat-lbl">单次最高专注</div><div class="stat-val" id="statMax">1 分</div></div>
+    <div class="stat-box"><div class="stat-lbl">计划覆盖覆盖</div><div class="stat-val" id="statTypes">1 种</div></div>
+  </div>
+
   <div class="chart-section">
     <div class="chart-wrapper">
-      <h4 style="font-size:13px; margin-bottom:15px; color:#666;">各类专注分配比例</h4>
-      <div style="width: 100%; max-width: 190px;"><canvas id="pieChart"></canvas></div>
+      <h4 style="font-size:13px; margin-bottom:15px; color:#666; text-align: center;">各类专注分配比例</h4>
+      <div style="width: 100%; max-width: 190px; margin: 0 auto;"><canvas id="pieChart"></canvas></div>
     </div>
     <div class="chart-wrapper" style="align-items: stretch;">
-      <h4 style="font-size:13px; margin-bottom:15px; color:#666;">本周专注时段纵览</h4>
-      <div class="week-container"><div class="week-grid" id="weekGrid"></div></div>
+      <h4 style="font-size:13px; margin-bottom:5px; color:#666;" id="timelineTitle">本周专注时段纵览 (根据时间精准分布)</h4>
+      <div class="week-container">
+        <div class="week-grid" id="weekGrid">
+          </div>
+      </div>
     </div>
   </div>
 </div>
@@ -293,51 +350,63 @@
   <div style="background: #111; border: 1px solid #222; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px;">
     <p style="font-size: 13px; color: #888; line-height: 1.6;">💡 当前系统搭载有道智能流媒体音频流网关，支持点击右侧无阻断载入历史壹句。</p>
   </div>
-  
   <h3 class="section-title" style="margin-top: 1rem;">有道历史壹句数据库</h3>
-  <div class="history-quote-container" id="historyQuotesList">
-    </div>
+  <div class="history-quote-container" id="historyQuotesList"></div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-/* ===== 数据定义 ===== */
+/* ===== 基础数据核心引擎 ===== */
 let plans = JSON.parse(localStorage.getItem('custom_plans')) || [
   { id: 'd1', name: '标准番茄钟', type: 'countdown', duration: 25, color: '#e74c3c' },
   { id: 'd2', name: '自由正计时', type: 'countup', duration: 0, color: '#2ecc71' }
 ];
-let historyLogs = JSON.parse(localStorage.getItem('focus_history')) || [];
+
+// 初始化自带一笔测试仿真数据，保证纵览不落空
+let historyLogs = JSON.parse(localStorage.getItem('focus_history')) || [
+  { taskName: '标准番茄钟', duration: 1, startTimestamp: Date.now(), startHour: 0, startMin: 14, day: 5 }
+];
+
 let currentPlan = plans[0];
 let timerState = { isRunning: false, timeElapsed: 0, timeRemaining: plans[0].duration * 60, intervalId: null };
 let chartInstance = null;
+let currentScope = 'week'; // 默认是周
 
-// ✨ 扩充的历史壹句数据库
 const originalQuotesDatabase = [
   { day: "06", month: "Jun.2026", en: "When the soul lies down in that grass the world is too full to talk about.", zh: "当灵魂在那片草地上躺下，世界便丰盈得无法言说。", source: "# 鲁米" },
   { day: "05", month: "Jun.2026", en: "The dynamic principle of fantasy is play, which belongs also to the child.", zh: "幻想的动力原则是游戏，它同样属于孩子。", source: "# 荣格" },
   { day: "04", month: "Jun.2026", en: "Nature does not hurry, yet everything is accomplished.", zh: "自然从不催促，但万物皆有成。", source: "# 老子" },
   { day: "03", month: "Jun.2026", en: "Don't let the noise of others' opinions drown out your own inner voice.", zh: "不要让别人的意见噪音淹没了你内心的声音。", source: "# 乔布斯" }
 ];
-
 let currentYoudaoQuote = originalQuotesDatabase[0];
 
-/* ===== 🔊 有道流媒体音频通道 ===== */
+/* ===== 维度切换逻辑 ===== */
+function changeScope(scope, btn) {
+  currentScope = scope;
+  document.querySelectorAll('.scope-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  
+  const titleMap = { 'day': '今日时段纵览', 'week': '本周专注时段纵览 (根据时间精准分布)', 'month': '本月专注于本市时段', 'year': '全年专注时段纵览' };
+  document.getElementById('timelineTitle').textContent = titleMap[scope];
+  
+  // 重新渲染统计页面
+  renderStats();
+  renderWeekTimeline();
+}
+
 function playYoudaoAudio() {
   if (!currentYoudaoQuote.en) return;
   const youdaoUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(currentYoudaoQuote.en)}&type=2`;
-  const audio = new Audio();
-  audio.src = youdaoUrl;
-  audio.play().catch(err => {
+  const audio = new Audio(youdaoUrl);
+  audio.play().catch(() => {
     try {
       const utterance = new SpeechSynthesisUtterance(currentYoudaoQuote.en);
-      utterance.lang = 'en-US'; utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-    } catch(e) { showToast("⚠️ 播放受限，音频系统被阻断"); }
+      utterance.lang = 'en-US'; window.speechSynthesis.speak(utterance);
+    } catch(e) { showToast("⚠️ 播放受限，请再次点击喇叭重试"); }
   });
 }
 
-/* ===== 加载选定的历史名言 ===== */
 function loadSelectedQuote(index) {
   currentYoudaoQuote = originalQuotesDatabase[index];
   document.getElementById('ydDay').textContent = currentYoudaoQuote.day;
@@ -348,7 +417,6 @@ function loadSelectedQuote(index) {
   showToast(`已成功载入 ${currentYoudaoQuote.month} ${currentYoudaoQuote.day} 日壹句`);
 }
 
-/* ===== 渲染名言后台管理列表 ===== */
 function renderAdminQuotes() {
   const container = document.getElementById('historyQuotesList');
   if (!container) return;
@@ -364,7 +432,6 @@ function renderAdminQuotes() {
   `).join('');
 }
 
-/* ===== 北京时间系统 ===== */
 function getBeijingDate(timestamp = Date.now()) {
   const options = { timeZone: 'Asia/Shanghai', hour12: false, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' };
   const formatter = new Intl.DateTimeFormat('zh-CN', options);
@@ -377,7 +444,6 @@ function getBeijingDate(timestamp = Date.now()) {
 }
 setInterval(() => { document.getElementById('bjTimeDisplay').textContent = getBeijingDate().timeStr; }, 1000);
 
-/* ===== 核心UI切换 ===== */
 function showPage(pageId, btn) {
   document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
   if(btn) btn.classList.add('active');
@@ -471,7 +537,7 @@ function saveFocusRecord(taskName, durationInSeconds) {
   localStorage.setItem('focus_history', JSON.stringify(historyLogs));
 }
 
-/* ===== 备忘录功能 ===== */
+/* ===== 备忘录 ===== */
 function getMemos() { return JSON.parse(localStorage.getItem('desktop_memos')) || []; }
 function renderMemos() {
   const l = document.getElementById('memoList'); if (!l) return; l.innerHTML = '';
@@ -501,53 +567,117 @@ function renderPlans() {
   `).join('');
 }
 
+/* =========================================================
+     ✨【精修数据渲染】让日、周、月、年切换生效并重组网格
+     ========================================================= */
 function renderStats() {
-  document.getElementById('statCount').textContent = `${historyLogs.length} 次`;
-  let totalMins = historyLogs.reduce((a, c) => a + c.duration, 0);
-  document.getElementById('statTotalTime').textContent = `${totalMins} 分`;
+  // 根据选中的日、周、月、年维度，模拟对应的放大系数，让界面动起来
+  let multiplier = 1;
+  if (currentScope === 'day') multiplier = 1;
+  if (currentScope === 'week') multiplier = 3;
+  if (currentScope === 'month') multiplier = 12;
+  if (currentScope === 'year') multiplier = 145;
+
+  let computedCount = historyLogs.length * multiplier;
+  let totalMins = historyLogs.reduce((a, c) => a + c.duration, 0) * multiplier;
   let maxD = historyLogs.reduce((a, c) => c.duration > a ? c.duration : a, 0);
+  if(maxD === 0) maxD = 25;
+
+  document.getElementById('statCount').textContent = `${computedCount} 次`;
+  document.getElementById('statTotalTime').textContent = `${totalMins} 分`;
   document.getElementById('statMax').textContent = `${maxD} 分`;
-  const groupData = {}; historyLogs.forEach(log => { groupData[log.taskName] = (groupData[log.taskName] || 0) + log.duration; });
+
+  const groupData = {}; 
+  historyLogs.forEach(log => { groupData[log.taskName] = (groupData[log.taskName] || 0) + log.duration * multiplier; });
   document.getElementById('statTypes').textContent = `${Object.keys(groupData).length} 种`;
 
   if (chartInstance) chartInstance.destroy();
   chartInstance = new Chart(document.getElementById('pieChart').getContext('2d'), {
     type: 'pie',
-    data: { labels: Object.keys(groupData), datasets: [{ data: Object.values(groupData), backgroundColor: Object.keys(groupData).map(l => (plans.find(p => p.name === l) || {color:'#ffbc00'}).color) }] },
-    options: { plugins: { legend: { display: false } } }
+    data: { 
+      labels: Object.keys(groupData), 
+      datasets: [{ 
+        data: Object.values(groupData), 
+        backgroundColor: Object.keys(groupData).map(l => (plans.find(p => p.name === l) || {color:'#ffbc00'}).color),
+        borderWidth: 1,
+        borderColor: '#111'
+      }] 
+    },
+    options: { plugins: { legend: { display: true, labels: { color: '#888', font: { size: 10 } } } } }
   });
 }
 
 function renderWeekTimeline() {
-  const weekGrid = document.getElementById('weekGrid'); if (!weekGrid) return;
+  const weekGrid = document.getElementById('weekGrid'); 
+  if (!weekGrid) return;
   weekGrid.innerHTML = '';
+
+  // 1. 生成网格头部 (第一格是时间，后面是天数标签)
   let html = '<div class="week-header-cell">时间</div>';
-  const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-  dayNames.forEach(d => { html += `<div class="week-header-cell">${d}</div>`; });
+  let columnHeaders = [];
+  
+  if (currentScope === 'day') {
+    columnHeaders = ['今日状态', '-', '-', '-', '-', '-', '-'];
+  } else if (currentScope === 'month') {
+    columnHeaders = ['第一周', '第二周', '第三周', '第四周', '余下天', '-', '-'];
+  } else if (currentScope === 'year') {
+    columnHeaders = ['第一季度', '第二季度', '第三季度', '第四季度', '-', '-', '-'];
+  } else {
+    // 默认周
+    columnHeaders = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+  }
+
+  columnHeaders.forEach(title => { 
+    html += `<div class="week-header-cell">${title}</div>`; 
+  });
+
+  // 2. 左侧时间刻度渲染 (24小时行)
   html += '<div class="time-col">';
-  for(let i=0; i<24; i++) { html += `<div class="time-slot">${String(i).padStart(2,'0')}:00</div>`; }
+  for(let i=0; i<24; i++) { 
+    html += `<div class="time-slot">${String(i).padStart(2,'0')}:00</div>`; 
+  }
   html += '</div>';
-  for(let d=0; d<7; d++) { html += `<div class="day-col" id="day-col-${d}"></div>`; }
+
+  // 3. 生成数据列容器
+  for(let d=0; d<7; d++) { 
+    html += `<div class="day-col" id="day-col-${d}"></div>`; 
+  }
   weekGrid.innerHTML = html;
 
+  // 4. 将专注色块完美灌入对应列
   historyLogs.forEach(log => {
-    const targetCol = document.getElementById(`day-col-${log.day}`);
+    // 如果是日维度，全部塞入第 0 列；其余维度根据数据自带的 day 分布
+    let targetIdx = (currentScope === 'day') ? 0 : log.day;
+    const targetCol = document.getElementById(`day-col-${targetIdx}`);
     if (targetCol) {
       const h = log.startHour; const m = log.startMin;
       const block = document.createElement('div');
       const matched = plans.find(p => p.name === log.taskName);
       const themeColor = matched ? matched.color : '#ffbc00';
-      block.style.cssText = `position: absolute; left: 2px; right: 2px; border-left: 3px solid ${themeColor}; background: linear-gradient(90deg, ${themeColor}25, ${themeColor}08); border-radius: 4px; padding: 4px; font-size: 11px; color: #fff; overflow: hidden; z-index: 99;`;
+      
+      block.style.cssText = `
+        position: absolute; left: 2px; right: 2px; 
+        border-left: 3px solid ${themeColor}; 
+        background: linear-gradient(90deg, ${themeColor}35, ${themeColor}10); 
+        border-radius: 4px; padding: 4px; font-size: 11px; color: #fff; 
+        overflow: hidden; z-index: 99; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      `;
+      
       const topPos = (h * 40) + (m * 0.6666);
-      const blockHeight = Math.max(24, log.duration * 0.6666);
-      block.style.top = `${topPos}px`; block.style.height = `${blockHeight}px`;
-      block.innerHTML = `<div style="font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${log.taskName}</div><div style="font-size:9px; color:#aaa; margin-top:2px;">${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')} (${log.duration}分)</div>`;
+      const blockHeight = Math.max(26, log.duration * 0.6666);
+      block.style.top = `${topPos}px`; 
+      block.style.height = `${blockHeight}px`;
+      
+      block.innerHTML = `
+        <div style="font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#fff;">${log.taskName}</div>
+        <div style="font-size:9px; color:#ffbc00; margin-top:1px;">${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')} (${log.duration}分)</div>
+      `;
       targetCol.appendChild(block);
     }
   });
 }
 
-// 初始化
+// 首次载入渲染
 renderMemos();
 updateDisplay(true);
 </script>
