@@ -338,14 +338,24 @@ async function fetchYoudaoQuote(isManual = false) {
   
   try {
     // 采用无跨域拦截的公开高速镜像源获取有道每日壹句完整JSON
-    const res = await fetch('https://open.iciba.com/dsapi/');
-    const data = await res.json();
+    const res = await fetch('https://v1.hitokoto.cn/?c=i');
+const res = await fetch(url);
+
+if (!res.ok) {
+  throw new Error(`HTTP ${res.status}`);
+}
+
+const data = await res.json();
     
     if (data && data.content) {
-      currentYoudaoQuote.en = data.content;
-      currentYoudaoQuote.zh = data.note;
-      currentYoudaoQuote.mp3 = data.tts || `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(data.content)}&type=2`;
-      currentYoudaoQuote.source = data.translation ? `— ${data.translation}` : '';
+     currentYoudaoQuote.en = data.hitokoto;
+currentYoudaoQuote.zh = data.from || "";
+currentYoudaoQuote.mp3 =
+  `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(data.hitokoto)}&type=2`;
+
+currentYoudaoQuote.source = data.from_who
+  ? `— ${data.from_who}`
+  : "";
       
       // 更新主界面UI显示
       document.getElementById('quoteEn').textContent = currentYoudaoQuote.en;
@@ -358,15 +368,32 @@ async function fetchYoudaoQuote(isManual = false) {
       
       if (isManual) showToast("⚡ 有道壹句同步更新完毕！");
     }
-  } catch (error) {
-    console.error("有道接口请求异常，启动本地容灾备用方案:", error);
-    // 备用机制避免完全空白
-    document.getElementById('quoteEn').textContent = "Be disciplined, enjoy freedom.";
-    document.getElementById('quoteZh').textContent = "自律，即自由。";
-    currentYoudaoQuote.mp3 = "https://dict.youdao.com/dictvoice?audio=Be+disciplined+enjoy+freedom&type=2";
+  }catch (error) {
+  console.error("有道接口请求异常，启动本地容灾备用方案:", error);
+
+  document.getElementById('quoteEn').textContent =
+    "Be disciplined, enjoy freedom.";
+
+  document.getElementById('quoteZh').textContent =
+    "自律，即自由。";
+
+  document.getElementById('quoteSource').textContent =
+    "本地备用语录";
+
+  currentYoudaoQuote.mp3 =
+    "https://dict.youdao.com/dictvoice?audio=Be+disciplined+enjoy+freedom&type=2";
+
+  const cacheEl = document.getElementById('ydCacheStatus');
+
+  if (cacheEl) {
+    cacheEl.innerHTML =
+      "⚠️ 获取失败（浏览器跨域限制），已切换本地备用语录";
+  }
+
+  if (isManual) {
+    showToast("⚠️ 在线语录获取失败");
   }
 }
-
 /* ===== 有道在线TTS地道原音发声控制 ===== */
 function playYoudaoAudio() {
   if (!currentYoudaoQuote.mp3) return;
