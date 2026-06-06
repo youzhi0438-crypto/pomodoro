@@ -3,16 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>高级番茄钟 Pro (有道壹句联动版)</title>
+<title>智能专注看板 Pro</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     background: #0a0a0a;
     color: #f0f0f0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
+    padding-bottom: 60px;
   }
 
   /* 导航栏样式 */
@@ -37,15 +38,15 @@
   /* ===== 工作台（CLOCK） ===== */
   #page-clock {
     flex-direction: row; align-items: center; justify-content: center;
-    min-height: calc(100vh - 70px); gap: 4rem;
+    min-height: calc(100vh - 100px); gap: 4rem;
   }
   .clock-side { display: flex; flex-direction: column; align-items: center; gap: 1.8rem; flex-shrink: 0; }
-  .current-task-title { font-size: 16px; color: #aaa; font-weight: 500; background: #111; padding: 6px 16px; border-radius: 20px; border: 1px solid #222;}
+  .current-task-title { font-size: 13px; color: #aaa; font-weight: 500; background: #161616; padding: 6px 18px; border-radius: 20px; border: 1px solid #252525;}
   
-  /* 拟物数字卡片翻页外观 */
+  /* 数字卡片外观 */
   .flip-clock { display: flex; align-items: center; gap: 14px; }
   .flip-unit { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-  .flip-unit-label { font-size: 11px; color: #444; letter-spacing: .08em; }
+  .flip-unit-label { font-size: 11px; color: #555; letter-spacing: .08em; }
   .flip-pair { display: flex; gap: 5px; }
   .flip-digit { width: 72px; height: 100px; position: relative; }
   .f-top { position: absolute; top: 0; left: 0; width: 100%; height: 50%; overflow: hidden; border-radius: 8px 8px 0 0; background: #1e1e1e; border: 1px solid #2a2a2a; border-bottom: 1px solid #111; display: flex; align-items: flex-end; justify-content: center; }
@@ -65,101 +66,94 @@
   .ctrl-btn.primary svg { width: 28px; height: 28px; }
 
   .divider { width: 1px; height: 340px; background: linear-gradient(to bottom, transparent, #2a2a2a 30%, #2a2a2a 70%, transparent); flex-shrink: 0; }
-  .quote-side { display: flex; flex-direction: column; justify-content: center; gap: 1.2rem; max-width: 320px; width: 100%; }
+  .quote-side { display: flex; flex-direction: column; justify-content: center; gap: 1.2rem; max-width: 380px; width: 100%; }
   
   /* 有道壹句卡片样式 */
-  .quote-card { display: flex; flex-direction: column; gap: 1rem; background: #111; border: 1px solid #222; padding: 18px; border-radius: 12px; position: relative; }
-  .quote-zh { font-size: 14px; font-weight: 400; color: #aaa; line-height: 1.6; }
-  .quote-en { font-size: 15px; font-weight: 600; color: #fff; line-height: 1.5; }
-  .quote-source { font-size: 11px; color: #555; text-align: right; margin-top: -4px; font-style: italic; }
+  .quote-card { 
+    display: flex; flex-direction: column; gap: 1.1rem; 
+    background: #141414; 
+    border: 1px solid #222; padding: 26px; border-radius: 20px; position: relative; 
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+  }
+  .quote-date-badge {
+    display: flex; align-items: baseline; gap: 6px; font-family: 'Times New Roman', Georgia, serif;
+    color: #ffffff; margin-bottom: 4px;
+  }
+  .quote-date-day { font-size: 42px; font-weight: 700; line-height: 1; letter-spacing: -1px; }
+  .quote-date-month { font-size: 14px; color: #777; font-weight: 600; font-family: sans-serif; }
   
-  .quote-btn-group { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; border-top: 1px solid #1a1a1a; padding-top: 10px; }
-  .yd-tag { font-size: 10px; background: #222; color: #ffbc00; padding: 2px 6px; border-radius: 4px; border: 1px solid #333; }
-  .speaker-btn { background: transparent; border: none; color: #666; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
-  .speaker-btn:hover { color: #ffbc00; }
-  .speaker-btn svg { width: 18px; height: 18px; fill: currentColor; }
+  .quote-en { font-size: 18px; font-weight: 700; color: #ffffff; line-height: 1.45; letter-spacing: 0.2px; }
+  .quote-zh { font-size: 13.5px; font-weight: 400; color: #888888; line-height: 1.6; margin-top: -2px; }
+  .quote-source { font-size: 13px; color: #ffbc00; text-align: left; font-weight: 600; margin-top: 2px; }
+  
+  /* ✨ 移除左下角文字，修改为仅包含右下角播放按钮的纯净容器 */
+  .quote-btn-group { display: flex; justify-content: flex-end; align-items: center; margin-top: 12px; border-top: 1px solid #222; padding-top: 14px; }
+  
+  .speaker-btn { background: #222; border: none; color: #aaa; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .speaker-btn:hover { color: #ffffff; background: #ffbc00; color: #000; transform: scale(1.05); }
+  .speaker-btn svg { width: 16px; height: 16px; fill: currentColor; }
 
-  .memo-card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; max-height: 200px; }
+  /* 备忘录 */
+  .memo-card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; max-height: 180px; }
   .memo-header { display: flex; justify-content: space-between; align-items: center; }
-  .memo-title { font-size: 13px; font-weight: 500; color: #888; display: flex; align-items: center; gap: 6px; }
+  .memo-title { font-size: 12px; font-weight: 500; color: #777; display: flex; align-items: center; gap: 6px; }
   .memo-input-group { display: flex; gap: 8px; }
   .memo-input { flex: 1; background: #0a0a0a; border: 1px solid #272727; border-radius: 6px; color: #e0e0e0; font-size: 12px; padding: 6px 10px; outline: none; }
   .memo-list { list-style: none; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; padding-right: 2px; }
   .memo-item { background: #161616; border: 1px solid #222; padding: 6px 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #ccc; }
-  .memo-del-btn { background: transparent; border: none; color: #555; cursor: pointer; font-size: 12px; transition: color 0.15s; }
+  .memo-del-btn { background: transparent; border: none; color: #555; cursor: pointer; font-size: 12px; }
   .memo-del-btn:hover { color: #e74c3c; }
 
-  /* 🛠️ 纯数字时钟悬浮组件（最左下角） */
+  /* ✨ 优化：移除了“北京时间”中文字，仅留下极其纯净的绿色霓虹时钟数字 */
   .bj-time-card {
-    position: fixed;
-    left: 20px;
-    bottom: 20px;
-    background: rgba(20, 20, 20, 0.85);
-    backdrop-filter: blur(10px);
-    border: 1px solid #262626;
-    border-radius: 8px;
-    padding: 6px 14px;
-    z-index: 9999;
-    pointer-events: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    position: fixed; right: 24px; bottom: 24px;
+    background: rgba(18, 18, 18, 0.8); backdrop-filter: blur(12px);
+    border: 1px solid #262626; border-radius: 20px; padding: 8px 16px;
+    z-index: 9999; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
   }
-  .bj-time-val {
-    font-size: 15px;
-    font-weight: 600;
-    color: #00ffcc;
-    font-family: monospace;
-    letter-spacing: 0.8px;
-  }
+  .bj-time-val { font-size: 14px; font-weight: 600; color: #00ffcc; font-family: monospace; letter-spacing: 0.5px; }
 
-  /* ===== 专注计划 / 数据统计管理页面 ===== */
+  /* ===== 其他功能页 ===== */
   #page-plans, #page-stats, #page-admin { flex-direction: column; gap: 2rem; }
-  .section-title { font-size: 18px; font-weight: 500; color: #e0e0e0; border-left: 3px solid #3498db; padding-left: 10px; margin-bottom: 1rem; }
-  
+  .section-title { font-size: 16px; font-weight: 500; color: #e0e0e0; border-left: 3px solid #ffbc00; padding-left: 10px; margin-bottom: 1rem; }
   .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
   .plan-card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; transition: all .2s; cursor: pointer;}
-  .plan-name { font-size: 16px; font-weight: 500; color: #fff; }
+  .plan-name { font-size: 15px; font-weight: 500; color: #fff; }
   .plan-meta { font-size: 12px; color: #666; }
-  .plan-badge { position: absolute; top: 15px; right: 15px; font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #222; color: #aaa; }
-
+  .plan-badge { position: absolute; top: 15px; right: 15px; font-size: 10px; padding: 2px 8px; border-radius: 10px; background: #222; color: #aaa; }
   .add-form { background: #111; border: 1px solid #222; border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
   .form-group { display: flex; flex-direction: column; gap: 6px; }
   .form-row-three { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; }
   .form-label { font-size: 12px; color: #888; }
-  .form-input, select { background: #0a0a0a; border: 1px solid #272727; border-radius: 8px; color: #e0e0e0; font-size: 14px; padding: 10px; outline: none; }
-  .color-picker-wrapper { display: flex; align-items: center; gap: 10px; background: #0a0a0a; border: 1px solid #272727; border-radius: 8px; padding: 4px 10px; height: 40px; }
-  .form-color { background: transparent; border: none; width: 30px; height: 24px; cursor: pointer; outline: none; }
-
-  .btn { padding: 10px 20px; border-radius: 8px; border: 1px solid #333; font-size: 13px; cursor: pointer; transition: all .2s; background: transparent; color: #aaa; text-align: center;}
+  .form-input, select { background: #0a0a0a; border: 1px solid #272727; border-radius: 8px; color: #e0e0e0; font-size: 13px; padding: 10px; outline: none; }
+  .color-picker-wrapper { display: flex; align-items: center; gap: 10px; background: #0a0a0a; border: 1px solid #272727; border-radius: 8px; padding: 4px 10px; height: 38px; }
+  .form-color { background: transparent; border: none; width: 30px; height: 24px; cursor: pointer; }
+  .btn { padding: 10px 20px; border-radius: 8px; border: 1px solid #333; font-size: 13px; cursor: pointer; transition: all .2s; background: transparent; color: #aaa; }
   .btn:hover { background: #1a1a1a; color: #f0f0f0; }
-  .btn.primary { background: #3498db; border-color: #3498db; color: #fff; }
-  .btn.primary:hover { background: #2980b9; }
+  .btn.primary { background: #ffbc00; border-color: #ffbc00; color: #000; font-weight: 600; }
+  .btn.primary:hover { background: #e0a500; }
 
-  /* ===== 数据统计看板 ===== */
+  /* 统计图表区 */
   .stats-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
   .stat-box { background: #111; border: 1px solid #222; border-radius: 12px; padding: 20px; text-align: center; }
-  .stat-val { font-size: 24px; font-weight: 600; color: #3498db; margin-top: 5px; font-variant-numeric: tabular-nums;}
-  .stat-lbl { font-size: 12px; color: #666; }
-  
-  .chart-section { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; min-height: 300px; }
+  .stat-val { font-size: 24px; font-weight: 600; color: #ffbc00; margin-top: 5px; font-variant-numeric: tabular-nums;}
+  .stat-lbl { font-size: 12px; color: #555; }
+  .chart-section { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
   .chart-wrapper { background: #111; border: 1px solid #222; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;}
   
-  /* ===== 课程表课时纵览布局 ===== */
-  .week-container { background: #111; border: 1px solid #222; border-radius: 12px; padding: 16px; overflow-x: auto; }
-  .week-grid { display: grid; grid-template-columns: 65px repeat(7, 1fr); position: relative; min-width: 750px; }
-  .week-header-cell { text-align: center; padding: 8px 0; font-size: 13px; color: #888; border-bottom: 1px solid #222; font-weight: 500; }
-  .time-col { display: flex; flex-direction: column; }
-  .time-slot { height: 40px; font-size: 11px; color: #555; text-align: right; padding-right: 12px; line-height: 12px; border-right: 1px solid #222; box-sizing: border-box; }
-  .day-col { position: relative; height: 960px; border-right: 1px solid #1a1a1a; background-image: linear-gradient(#1a1a1a 1px, transparent 1px); background-size: 100% 40px; }
-  .day-col:last-child { border-right: none; }
+  /* ✨ 历史壹句后台列表样式 */
+  .history-quote-container { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+  .hq-card { background: #161616; border: 1px solid #252525; border-radius: 10px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
+  .hq-card:hover { border-color: #444; background: #1c1c1c; }
+  .hq-info { display: flex; flex-direction: column; gap: 4px; max-width: 80%; }
+  .hq-en { font-size: 13px; font-weight: 600; color: #eee; }
+  .hq-zh { font-size: 12px; color: #888; }
+  .hq-meta { font-size: 11px; color: #ffbc00; font-weight: 500; }
 
-  /* 有道控制面板专属 */
-  .yd-config-box { background: #111; border: 1px solid #222; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-  .yd-preview-card { background: #0a0a0a; border: 1px solid #222; padding: 16px; border-radius: 8px; margin-top: 8px; }
-
-  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(16px); background: #1e1e1e; border: 1px solid #333; border-radius: 10px; padding: 10px 20px; font-size: 13px; color: #ccc; opacity: 0; transition: all .3s; pointer-events: none; z-index: 999; }
+  .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(10px); background: #222; border: 1px solid #333; border-radius: 20px; padding: 8px 24px; font-size: 12px; color: #eee; opacity: 0; transition: all .3s; pointer-events: none; z-index: 10000; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  @media (max-width: 800px) {
+  @media (max-width: 850px) {
     #page-clock { flex-direction: column; gap: 2rem; padding-top: 1rem;}
     .divider { width: 200px; height: 1px; background: linear-gradient(to right, transparent, #2a2a2a, transparent); }
     .stats-summary { grid-template-columns: repeat(2, 1fr); }
@@ -175,7 +169,7 @@
     <button class="nav-tab active" onclick="showPage('clock',this)">工作台</button>
     <button class="nav-tab" onclick="showPage('plans',this)">专注计划</button>
     <button class="nav-tab" onclick="showPage('stats',this)">数据统计</button>
-    <button class="nav-tab" onclick="showPage('admin',this)">有道壹句</button>
+    <button class="nav-tab" onclick="showPage('admin',this)">名言管理</button>
   </div>
 </nav>
 
@@ -214,22 +208,23 @@
 
   <div class="quote-side">
     <div class="quote-card">
-      <div class="quote-en" id="quoteEn">Loading daily quote...</div>
-      <div class="quote-zh" id="quoteZh">正在加载有道壹句金句...</div>
-      <div class="quote-source" id="quoteSource"></div>
+      <div class="quote-date-badge">
+        <span class="quote-date-day" id="ydDay">05</span>
+        <span class="quote-date-month" id="ydMonth">Jun.2026</span>
+      </div>
+      <div class="quote-en" id="quoteEn">When the soul lies down in that grass the world is too full to talk about.</div>
+      <div class="quote-zh" id="quoteZh">当灵魂在那片草地上躺下，世界便丰盈得无法言说。</div>
+      <div class="quote-source" id="quoteSource"># 鲁米</div>
       
       <div class="quote-btn-group">
-        <span class="yd-tag">有道词典 · 壹句</span>
-        <button class="speaker-btn" onclick="playYoudaoAudio()" title="播放有道地道原声发音">
+        <button class="speaker-btn" onclick="playYoudaoAudio()" title="播放真人原声">
           <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
         </button>
       </div>
     </div>
 
     <div class="memo-card">
-      <div class="memo-header">
-        <span class="memo-title">📋 今日备忘</span>
-      </div>
+      <div class="memo-header"><span class="memo-title">📋 今日备忘</span></div>
       <div class="memo-input-group">
         <input type="text" id="memoInput" class="memo-input" placeholder="添加新待办..." onkeydown="if(event.key==='Enter')addMemoItem()">
         <button class="btn primary" style="padding: 4px 12px; font-size:12px; border-radius:6px;" onclick="addMemoItem()">添加</button>
@@ -246,7 +241,7 @@
       <div class="form-row-three">
         <div class="form-group">
           <label class="form-label">任务名称</label>
-          <input type="text" id="planName" placeholder="例如：学英语、写前端代码">
+          <input type="text" id="planName" class="form-input" placeholder="例如：学英语、写代码">
         </div>
         <div class="form-group">
           <label class="form-label">计时类型</label>
@@ -256,21 +251,19 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">自选卡片/统计颜色</label>
-          <div class="color-picker-wrapper">
-            <input type="color" id="planColor" class="form-color" value="#3498db">
-          </div>
+          <label class="form-label">自选卡片颜色</label>
+          <div class="color-picker-wrapper"><input type="color" id="planColor" class="form-color" value="#ffbc00"></div>
         </div>
       </div>
       <div class="form-group" id="formDurationGroup">
         <label class="form-label">设定时长 (分钟)</label>
-        <input type="number" id="planDuration" value="25" min="1">
+        <input type="number" id="planDuration" class="form-input" value="25" min="1">
       </div>
       <button class="btn primary" onclick="createNewPlan()">添加此计划</button>
     </div>
   </div>
   <div>
-    <h3 class="section-title">自选计划列表 (点击立即开始)</h3>
+    <h3 class="section-title">自选计划列表</h3>
     <div class="card-grid" id="plansGrid"></div>
   </div>
 </div>
@@ -283,142 +276,123 @@
     <div class="stat-box"><div class="stat-lbl">单次最高时长</div><div class="stat-val" id="statMax">0 分</div></div>
     <div class="stat-box"><div class="stat-lbl">计划覆盖种类</div><div class="stat-val" id="statTypes">0 种</div></div>
   </div>
-
   <div class="chart-section">
     <div class="chart-wrapper">
-      <h4 style="font-size:14px; margin-bottom:15px; color:#aaa;">各类专注分配比例</h4>
-      <div style="width: 100%; max-width: 200px;"><canvas id="pieChart"></canvas></div>
+      <h4 style="font-size:13px; margin-bottom:15px; color:#666;">各类专注分配比例</h4>
+      <div style="width: 100%; max-width: 190px;"><canvas id="pieChart"></canvas></div>
     </div>
-    
     <div class="chart-wrapper" style="align-items: stretch;">
-      <h4 style="font-size:14px; margin-bottom:15px; color:#aaa;">本周专注时段纵览 (严格对应北京时间轴)</h4>
-      <div class="week-container">
-        <div class="week-grid" id="weekGrid"></div>
-      </div>
+      <h4 style="font-size:13px; margin-bottom:15px; color:#666;">本周专注时段纵览</h4>
+      <div class="week-container"><div class="week-grid" id="weekGrid"></div></div>
     </div>
   </div>
 </div>
 
 <div id="page-admin" class="page">
-  <h3 class="section-title">网易有道词典 · 壹句联动中心</h3>
-  <div class="yd-config-box">
-    <p style="font-size: 13px; color: #888; line-height: 1.6;">
-      💡 当前系统已全面切入<b>有道在线词典开放API</b>，每天开启面板时会自动抓取最新的双语金句。无需本地维护数据库。
-    </p>
-    <button class="btn primary" style="align-self: flex-start;" onclick="fetchYoudaoQuote(true)">🔄 手动强制刷新今日壹句</button>
-    
-    <div class="yd-preview-card">
-      <h4 style="font-size: 12px; color: #666; margin-bottom: 8px;">有道接口响应缓存状态</h4>
-      <p id="ydCacheStatus" style="font-size: 13px; color: #00ffcc; font-family: monospace;">正在检查获取...</p>
-    </div>
+  <h3 class="section-title">名言数据通信状态</h3>
+  <div style="background: #111; border: 1px solid #222; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px;">
+    <p style="font-size: 13px; color: #888; line-height: 1.6;">💡 当前系统搭载有道智能流媒体音频流网关，支持点击右侧无阻断载入历史壹句。</p>
   </div>
+  
+  <h3 class="section-title" style="margin-top: 1rem;">有道历史壹句数据库</h3>
+  <div class="history-quote-container" id="historyQuotesList">
+    </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-/* ===== 数据驱动储存 ===== */
+/* ===== 数据定义 ===== */
 let plans = JSON.parse(localStorage.getItem('custom_plans')) || [
   { id: 'd1', name: '标准番茄钟', type: 'countdown', duration: 25, color: '#e74c3c' },
-  { id: 'd2', name: '自由正计时', type: 'countup', duration: 0, color: '#2ecc71' },
-  { id: 'd3', name: '深度长专注', type: 'countdown', duration: 50, color: '#9b59b6' }
+  { id: 'd2', name: '自由正计时', type: 'countup', duration: 0, color: '#2ecc71' }
 ];
-
 let historyLogs = JSON.parse(localStorage.getItem('focus_history')) || [];
 let currentPlan = plans[0];
 let timerState = { isRunning: false, timeElapsed: 0, timeRemaining: plans[0].duration * 60, intervalId: null };
 let chartInstance = null;
 
-// 缓存当前加载的有道壹句语音与文本数据
-let currentYoudaoQuote = { en: '', zh: '', mp3: '', source: '' };
+// ✨ 扩充的历史壹句数据库
+const originalQuotesDatabase = [
+  { day: "06", month: "Jun.2026", en: "When the soul lies down in that grass the world is too full to talk about.", zh: "当灵魂在那片草地上躺下，世界便丰盈得无法言说。", source: "# 鲁米" },
+  { day: "05", month: "Jun.2026", en: "The dynamic principle of fantasy is play, which belongs also to the child.", zh: "幻想的动力原则是游戏，它同样属于孩子。", source: "# 荣格" },
+  { day: "04", month: "Jun.2026", en: "Nature does not hurry, yet everything is accomplished.", zh: "自然从不催促，但万物皆有成。", source: "# 老子" },
+  { day: "03", month: "Jun.2026", en: "Don't let the noise of others' opinions drown out your own inner voice.", zh: "不要让别人的意见噪音淹没了你内心的声音。", source: "# 乔布斯" }
+];
 
-/* ===== 核心：异步对接有道词典“壹句”功能 ===== */
-async function fetchYoudaoQuote(isManual = false) {
-  if (isManual) showToast("正在连接网易有道服务器...");
-  
-  try {
-    // 采用无跨域拦截的公开高速镜像源获取有道每日壹句完整JSON
-    const res = await fetch('https://open.iciba.com/dsapi/');
-    const data = await res.json();
-    
-    if (data && data.content) {
-      currentYoudaoQuote.en = data.content;
-      currentYoudaoQuote.zh = data.note;
-      currentYoudaoQuote.mp3 = data.tts || `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(data.content)}&type=2`;
-      currentYoudaoQuote.source = data.translation ? `— ${data.translation}` : '';
-      
-      // 更新主界面UI显示
-      document.getElementById('quoteEn').textContent = currentYoudaoQuote.en;
-      document.getElementById('quoteZh').textContent = currentYoudaoQuote.zh;
-      document.getElementById('quoteSource').textContent = currentYoudaoQuote.source;
-      
-      // 更新控制管理后台数据
-      const cacheEl = document.getElementById('ydCacheStatus');
-      if (cacheEl) cacheEl.innerHTML = `🌟 连接成功！<br>英文: ${data.content}<br>中文: ${data.note}`;
-      
-      if (isManual) showToast("⚡ 有道壹句同步更新完毕！");
-    }
-  } catch (error) {
-    console.error("有道接口请求异常，启动本地容灾备用方案:", error);
-    // 备用机制避免完全空白
-    document.getElementById('quoteEn').textContent = "Be disciplined, enjoy freedom.";
-    document.getElementById('quoteZh').textContent = "自律，即自由。";
-    currentYoudaoQuote.mp3 = "https://dict.youdao.com/dictvoice?audio=Be+disciplined+enjoy+freedom&type=2";
-  }
-}
+let currentYoudaoQuote = originalQuotesDatabase[0];
 
-/* ===== 有道在线TTS地道原音发声控制 ===== */
+/* ===== 🔊 有道流媒体音频通道 ===== */
 function playYoudaoAudio() {
-  if (!currentYoudaoQuote.mp3) return;
-  const audio = new Audio(currentYoudaoQuote.mp3);
-  audio.play().catch(e => {
-    // 假如有道音频资源受限，无缝降级为系统自带TTS
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(currentYoudaoQuote.en);
-    u.lang = 'en-US';
-    window.speechSynthesis.speak(u);
+  if (!currentYoudaoQuote.en) return;
+  const youdaoUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(currentYoudaoQuote.en)}&type=2`;
+  const audio = new Audio();
+  audio.src = youdaoUrl;
+  audio.play().catch(err => {
+    try {
+      const utterance = new SpeechSynthesisUtterance(currentYoudaoQuote.en);
+      utterance.lang = 'en-US'; utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    } catch(e) { showToast("⚠️ 播放受限，音频系统被阻断"); }
   });
 }
 
-/* ===== 获取精确北京时间 ===== */
+/* ===== 加载选定的历史名言 ===== */
+function loadSelectedQuote(index) {
+  currentYoudaoQuote = originalQuotesDatabase[index];
+  document.getElementById('ydDay').textContent = currentYoudaoQuote.day;
+  document.getElementById('ydMonth').textContent = currentYoudaoQuote.month;
+  document.getElementById('quoteEn').textContent = currentYoudaoQuote.en;
+  document.getElementById('quoteZh').textContent = currentYoudaoQuote.zh;
+  document.getElementById('quoteSource').textContent = currentYoudaoQuote.source;
+  showToast(`已成功载入 ${currentYoudaoQuote.month} ${currentYoudaoQuote.day} 日壹句`);
+}
+
+/* ===== 渲染名言后台管理列表 ===== */
+function renderAdminQuotes() {
+  const container = document.getElementById('historyQuotesList');
+  if (!container) return;
+  container.innerHTML = originalQuotesDatabase.map((q, idx) => `
+    <div class="hq-card">
+      <div class="hq-info">
+        <span class="hq-en">${q.en}</span>
+        <span class="hq-zh">${q.zh}</span>
+        <span class="hq-meta">${q.month} ${q.day} 日 · ${q.source}</span>
+      </div>
+      <button class="btn" onclick="loadSelectedQuote(${idx})">应用此句</button>
+    </div>
+  `).join('');
+}
+
+/* ===== 北京时间系统 ===== */
 function getBeijingDate(timestamp = Date.now()) {
   const options = { timeZone: 'Asia/Shanghai', hour12: false, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' };
   const formatter = new Intl.DateTimeFormat('zh-CN', options);
   const parts = formatter.formatToParts(new Date(timestamp));
   const map = {}; parts.forEach(p => map[p.type] = p.value);
-  
   const H = parseInt(map.hour); const M = parseInt(map.minute); const S = parseInt(map.second);
   let dayIdx = new Date(`${map.year}/${map.month}/${map.day}`).getDay() - 1;
   if(dayIdx === -1) dayIdx = 6; 
-
   return { hour: H, minute: M, second: S, dayIdx, timeStr: `${String(H).padStart(2,'0')}:${String(M).padStart(2,'0')}:${String(S).padStart(2,'0')}` };
 }
+setInterval(() => { document.getElementById('bjTimeDisplay').textContent = getBeijingDate().timeStr; }, 1000);
 
-setInterval(() => {
-  document.getElementById('bjTimeDisplay').textContent = getBeijingDate().timeStr;
-}, 1000);
-
-/* ===== 页面路由与菜单管理 ===== */
+/* ===== 核心UI切换 ===== */
 function showPage(pageId, btn) {
   document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
   if(btn) btn.classList.add('active');
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(`page-${pageId}`).classList.add('active');
-  
   if(pageId === 'plans') renderPlans();
   if(pageId === 'stats') { renderStats(); renderWeekTimeline(); }
-  if(pageId === 'admin') {
-    const cacheEl = document.getElementById('ydCacheStatus');
-    if(currentYoudaoQuote.en) cacheEl.innerHTML = `🌟 连接成功！<br>英文: ${currentYoudaoQuote.en}<br>中文: ${currentYoudaoQuote.zh}`;
-  }
+  if(pageId === 'admin') renderAdminQuotes();
 }
 
 function showToast(msg) {
   const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
+  setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-/* ===== 时钟核心操控引擎 ===== */
 function animFlip(el, newVal) {
   if (!el) return;
   const top = el.querySelector('.f-top span'), bot = el.querySelector('.f-bot span');
@@ -455,7 +429,7 @@ function toggleTimer() {
       if (currentPlan.type === 'countdown') {
         if (timerState.timeRemaining <= 0) {
           saveFocusRecord(currentPlan.name, currentPlan.duration * 60);
-          showToast(`🎉 任务已完成：${currentPlan.name}`);
+          showToast(`🎉 专注完成：${currentPlan.name}`);
           resetTimer(); return;
         }
         timerState.timeRemaining--;
@@ -475,7 +449,7 @@ function resetTimer() {
 function skipTimer() {
   if(timerState.isRunning || timerState.timeElapsed > 1 || (currentPlan.type === 'countdown' && timerState.timeRemaining < currentPlan.duration * 60)) {
     let secs = currentPlan.type === 'countdown' ? (currentPlan.duration * 60 - timerState.timeRemaining) : timerState.timeElapsed;
-    if(secs > 2) { saveFocusRecord(currentPlan.name, secs); showToast("⏹️ 专注记录已成功同步存入时间轴。"); }
+    if(secs > 2) { saveFocusRecord(currentPlan.name, secs); showToast("⏹️ 数据已成功沉淀至数据周看板"); }
   }
   resetTimer();
 }
@@ -490,19 +464,14 @@ function saveFocusRecord(taskName, durationInSeconds) {
   const nowStamp = Date.now();
   const startStamp = nowStamp - (durationInSeconds * 1000);
   const bjStart = getBeijingDate(startStamp);
-
   historyLogs.push({
-    taskName,
-    duration: Math.max(1, Math.round(durationInSeconds / 60)),
-    startTimestamp: startStamp,
-    startHour: bjStart.hour,
-    startMin: bjStart.minute,
-    day: bjStart.dayIdx 
+    taskName, duration: Math.max(1, Math.round(durationInSeconds / 60)),
+    startTimestamp: startStamp, startHour: bjStart.hour, startMin: bjStart.minute, day: bjStart.dayIdx 
   });
   localStorage.setItem('focus_history', JSON.stringify(historyLogs));
 }
 
-/* ===== 今日备忘录 ===== */
+/* ===== 备忘录功能 ===== */
 function getMemos() { return JSON.parse(localStorage.getItem('desktop_memos')) || []; }
 function renderMemos() {
   const l = document.getElementById('memoList'); if (!l) return; l.innerHTML = '';
@@ -513,11 +482,8 @@ function addMemoItem() {
   const list = getMemos(); list.push({ id: Date.now(), text: txt });
   localStorage.setItem('desktop_memos', JSON.stringify(list)); input.value = ''; renderMemos();
 }
-function deleteMemoItem(id) {
-  localStorage.setItem('desktop_memos', JSON.stringify(getMemos().filter(i => i.id !== id))); renderMemos();
-}
+function deleteMemoItem(id) { localStorage.setItem('desktop_memos', JSON.stringify(getMemos().filter(i => i.id !== id))); renderMemos(); }
 
-/* ===== 计划控制方案 ===== */
 function toggleFormDuration() { document.getElementById('formDurationGroup').style.display = document.getElementById('planType').value === 'countup' ? 'none' : 'flex'; }
 function createNewPlan() {
   const name = document.getElementById('planName').value.trim(); const type = document.getElementById('planType').value;
@@ -530,44 +496,37 @@ function renderPlans() {
     <div class="plan-card" style="border-top: 3px solid ${p.color}" onclick="selectPlan('${p.id}')">
       <span class="plan-badge">${p.type === 'countdown' ? '倒计时' : '正计时'}</span>
       <div class="plan-name">${p.name}</div>
-      <div class="plan-meta">${p.type === 'countdown' ? `${p.duration} 分钟` : '按需结算'}</div>
+      <div class="plan-meta">${p.type === 'countdown' ? `${p.duration} 分钟` : '自适应时间'}</div>
     </div>
   `).join('');
 }
 
-/* ===== 数据图表分析 ===== */
 function renderStats() {
   document.getElementById('statCount').textContent = `${historyLogs.length} 次`;
   let totalMins = historyLogs.reduce((a, c) => a + c.duration, 0);
   document.getElementById('statTotalTime').textContent = `${totalMins} 分`;
   let maxD = historyLogs.reduce((a, c) => c.duration > a ? c.duration : a, 0);
   document.getElementById('statMax').textContent = `${maxD} 分`;
-  
-  const groupData = {};
-  historyLogs.forEach(log => { groupData[log.taskName] = (groupData[log.taskName] || 0) + log.duration; });
+  const groupData = {}; historyLogs.forEach(log => { groupData[log.taskName] = (groupData[log.taskName] || 0) + log.duration; });
   document.getElementById('statTypes').textContent = `${Object.keys(groupData).length} 种`;
 
   if (chartInstance) chartInstance.destroy();
   chartInstance = new Chart(document.getElementById('pieChart').getContext('2d'), {
     type: 'pie',
-    data: { labels: Object.keys(groupData), datasets: [{ data: Object.values(groupData), backgroundColor: Object.keys(groupData).map(l => (plans.find(p => p.name === l) || {color:'#3498db'}).color) }] },
+    data: { labels: Object.keys(groupData), datasets: [{ data: Object.values(groupData), backgroundColor: Object.keys(groupData).map(l => (plans.find(p => p.name === l) || {color:'#ffbc00'}).color) }] },
     options: { plugins: { legend: { display: false } } }
   });
 }
 
-/* ===== 严格时间轴纵览课表渲染 ===== */
 function renderWeekTimeline() {
   const weekGrid = document.getElementById('weekGrid'); if (!weekGrid) return;
   weekGrid.innerHTML = '';
-  
   let html = '<div class="week-header-cell">时间</div>';
   const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
   dayNames.forEach(d => { html += `<div class="week-header-cell">${d}</div>`; });
-  
   html += '<div class="time-col">';
   for(let i=0; i<24; i++) { html += `<div class="time-slot">${String(i).padStart(2,'0')}:00</div>`; }
   html += '</div>';
-  
   for(let d=0; d<7; d++) { html += `<div class="day-col" id="day-col-${d}"></div>`; }
   weekGrid.innerHTML = html;
 
@@ -577,34 +536,20 @@ function renderWeekTimeline() {
       const h = log.startHour; const m = log.startMin;
       const block = document.createElement('div');
       const matched = plans.find(p => p.name === log.taskName);
-      const themeColor = matched ? matched.color : '#3498db';
-      
-      block.style.cssText = `
-        position: absolute; left: 2px; right: 2px;
-        border-left: 3px solid ${themeColor};
-        background: linear-gradient(90deg, ${themeColor}25, ${themeColor}08);
-        border-radius: 4px; padding: 4px; font-size: 11px; color: #fff;
-        overflow: hidden; z-index: 99;
-      `;
-
+      const themeColor = matched ? matched.color : '#ffbc00';
+      block.style.cssText = `position: absolute; left: 2px; right: 2px; border-left: 3px solid ${themeColor}; background: linear-gradient(90deg, ${themeColor}25, ${themeColor}08); border-radius: 4px; padding: 4px; font-size: 11px; color: #fff; overflow: hidden; z-index: 99;`;
       const topPos = (h * 40) + (m * 0.6666);
       const blockHeight = Math.max(24, log.duration * 0.6666);
       block.style.top = `${topPos}px`; block.style.height = `${blockHeight}px`;
-      
-      const timeStr = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-      block.innerHTML = `
-        <div style="font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${log.taskName}</div>
-        <div style="font-size:9px; color:#aaa; margin-top:2px;">${timeStr} (${log.duration}分)</div>
-      `;
+      block.innerHTML = `<div style="font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${log.taskName}</div><div style="font-size:9px; color:#aaa; margin-top:2px;">${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')} (${log.duration}分)</div>`;
       targetCol.appendChild(block);
     }
   });
 }
 
-// 首次运行初始化
+// 初始化
 renderMemos();
 updateDisplay(true);
-fetchYoudaoQuote(); // 页面打开时自动加载有道壹句
 </script>
 </body>
 </html>
